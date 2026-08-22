@@ -1,9 +1,9 @@
-<x-app-layout>
+﻿<x-app-layout>
     <x-slot name="header">
         <div class="flex justify-between items-center">
             <h2 class="font-semibold text-xl text-gray-800 leading-tight">Roles</h2>
             <a href="{{ route('seguridad.roles.create') }}"
-               class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md text-sm">
+               class="btn-primary">
                 Agregar Rol
             </a>
         </div>
@@ -20,12 +20,12 @@
     <input type="text" name="search" value="{{ request('search') }}"
            placeholder="Buscar rol..."
            class="flex-1 border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
-    <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md text-sm">
+    <button type="submit" class="btn-primary">
         Buscar Rol
     </button>
     @if(request('search'))
         <a href="{{ route('seguridad.roles.index') }}"
-           class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded-md text-sm">
+           class="btn-secondary">
             Limpiar
         </a>
     @endif
@@ -52,13 +52,13 @@
                         </td>
                         <td class="px-6 py-3 flex gap-2">
                             <a href="{{ route('seguridad.roles.edit', $rol) }}"
-                               class="bg-yellow-400 hover:bg-yellow-500 text-white px-3 py-1 rounded text-xs">
+                               class="btn-warning btn-sm">
                                 Modificar Rol
                             </a>
                             <form action="{{ route('seguridad.roles.destroy', $rol) }}"
                                   method="POST" onsubmit="return confirm('¿Eliminar este rol?')">
                                 @csrf @method('DELETE')
-                                <button class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-xs">
+                                <button class="btn-danger btn-sm">
                                 Eliminar Rol
                                 </button>
                             </form>

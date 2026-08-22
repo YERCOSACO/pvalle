@@ -1,37 +1,36 @@
 <x-app-layout>
     <x-slot name="header">
-        <div class="flex justify-between items-center">
-            <h2 class="font-semibold text-xl text-gray-800 leading-tight">Clientes</h2>
-            <a href="{{ route('parametrizacion.clientes.create') }}"
-               class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md text-sm">
-                Agregar Cliente
+        <div class="section-toolbar">
+            <div>
+                <h2 class="page-title">Clientes</h2>
+                <p class="page-subtitle">Administra la información de contacto y registro de cada cliente.</p>
+            </div>
+            <a href="{{ route('parametrizacion.clientes.create') }}" class="btn-primary">
+                Agregar cliente
             </a>
         </div>
     </x-slot>
 
-    <div class="py-8 max-w-7xl mx-auto px-4">
-
+    <div class="page-shell">
         @if(session('success'))
-            <div class="mb-4 p-4 bg-green-100 text-green-700 rounded-lg">
+            <div class="alert-success">
                 {{ session('success') }}
             </div>
         @endif
-<form method="GET" action="{{ route('parametrizacion.clientes.index') }}" class="mb-4 flex gap-2">
-    <input type="text" name="search" value="{{ request('search') }}"
-           placeholder="Buscar por nombre, cédula o email..."
-           class="flex-1 border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
-    <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md text-sm">
-        Buscar Cliente
-    </button>
-    @if(request('search'))
-        <a href="{{ route('parametrizacion.clientes.index') }}"
-           class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded-md text-sm">
-            Limpiar
-        </a>
-    @endif
-</form>
-        <div class="bg-white shadow rounded-lg overflow-hidden">
-            <table class="w-full text-sm">
+
+        <form method="GET" action="{{ route('parametrizacion.clientes.index') }}" class="search-form">
+            <input type="text" name="search" value="{{ request('search') }}" placeholder="Buscar por nombre, cédula o email...">
+            <button type="submit" class="btn-primary">Buscar cliente</button>
+            @if(request('search'))
+                <a href="{{ route('parametrizacion.clientes.index') }}" class="btn-secondary">
+                    Limpiar
+                </a>
+            @endif
+        </form>
+
+        <div class="table-card overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="table-shell text-sm">
                 <thead class="bg-gray-50 text-gray-500 uppercase text-xs border-b">
                     <tr>
                         <th class="px-6 py-3 text-left">#</th>
@@ -44,35 +43,38 @@
                 </thead>
                 <tbody class="divide-y divide-gray-100">
                     @forelse($clientes as $cliente)
-                    <tr class="hover:bg-gray-50">
+                    <tr>
                         <td class="px-6 py-3 text-gray-400">{{ $loop->iteration }}</td>
                         <td class="px-6 py-3 font-medium">{{ $cliente->nombre_completo }}</td>
                         <td class="px-6 py-3 text-gray-500">{{ $cliente->cedula }}</td>
                         <td class="px-6 py-3 text-gray-500">{{ $cliente->email }}</td>
                         <td class="px-6 py-3 text-gray-500">{{ $cliente->telefono ?? '—' }}</td>
-                        <td class="px-6 py-3 flex gap-2">
+                        <td class="px-6 py-3">
+                            <div class="table-actions">
                             <a href="{{ route('parametrizacion.clientes.edit', $cliente) }}"
-                               class="bg-yellow-400 hover:bg-yellow-500 text-white px-3 py-1 rounded text-xs">
+                               class="btn-warning btn-sm">
                                 Modificar Cliente
                             </a>
                             <form action="{{ route('parametrizacion.clientes.destroy', $cliente) }}"
                                   method="POST" onsubmit="return confirm('¿Eliminar este cliente?')">
                                 @csrf @method('DELETE')
-                                <button class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-xs">
+                                <button class="btn-danger btn-sm">
                                     Eliminar Cliente
                                 </button>
                             </form>
+                            </div>
                         </td>
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="6" class="px-6 py-8 text-center text-gray-400">
+                        <td colspan="6" class="empty-state">
                             Sin clientes registrados.
                         </td>
                     </tr>
                     @endforelse
                 </tbody>
-            </table>
+                </table>
+            </div>
             @if($clientes->hasPages())
                 <div class="px-6 py-4 border-t">{{ $clientes->links() }}</div>
             @endif

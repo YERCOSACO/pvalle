@@ -1,121 +1,89 @@
-<aside class="w-64 bg-gray-800 text-gray-200 min-h-screen px-4 py-6">
+@php
+    $navigationGroups = [
+        [
+            'label' => 'Seguridad',
+            'pattern' => 'seguridad.*',
+            'items' => [
+                ['label' => 'Usuario', 'route' => 'seguridad.usuarios.index', 'active' => 'seguridad.usuarios.*'],
+                ['label' => 'Rol', 'route' => 'seguridad.roles.index', 'active' => 'seguridad.roles.*'],
+                ['label' => 'Usuario Rol', 'route' => 'seguridad.usuariorol.index', 'active' => 'seguridad.usuariorol.*'],
+            ],
+        ],
+        [
+            'label' => 'Parametrización',
+            'pattern' => 'parametrizacion.*',
+            'items' => [
+                ['label' => 'Cliente', 'route' => 'parametrizacion.clientes.index', 'active' => 'parametrizacion.clientes.*'],
+                ['label' => 'Bus', 'route' => 'parametrizacion.buses.index', 'active' => 'parametrizacion.buses.*'],
+                ['label' => 'Conductor', 'route' => 'parametrizacion.conductores.index', 'active' => 'parametrizacion.conductores.*'],
+                ['label' => 'Ruta', 'route' => 'parametrizacion.rutas.index', 'active' => 'parametrizacion.rutas.*'],
+                ['label' => 'Tipo encomienda', 'route' => 'parametrizacion.tipoencomiendas.index', 'active' => 'parametrizacion.tipoencomiendas.*'],
+                ['label' => 'Tipo incidencia', 'route' => 'parametrizacion.tipoincidencias.index', 'active' => 'parametrizacion.tipoincidencias.*'],
+                ['label' => 'Notificacion', 'route' => 'transaccional.notificaciones.index', 'active' => 'transaccional.notificaciones.*'],
 
-    <h2 class="text-white text-lg font-bold mb-6 px-2">PValle</h2>
+                ],
+        ],
+        [
+            'label' => 'Transaccional',
+            'pattern' => 'transaccional.*',
+            'items' => [
+                ['label' => 'Reserva', 'route' => 'transaccional.reservas.index', 'active' => 'transaccional.reservas.*'],
+                ['label' => 'Boleto', 'route' => 'transaccional.boletos.index', 'active' => 'transaccional.boletos.*'],
+                ['label' => 'Viaje', 'route' => 'transaccional.viajes.index', 'active' => 'transaccional.viajes.*'],
+                ['label' => 'Asignación de conductor', 'route' => 'transaccional.asignacionconductor.index', 'active' => 'transaccional.asignacionconductor.*'],
+                ['label' => 'Incidencia', 'route' => 'transaccional.incidenciaviaje.index', 'active' => 'transaccional.incidenciaviaje.*'],
+                ['label' => 'Encomienda', 'route' => 'transaccional.encomiendas.index', 'active' => 'transaccional.encomiendas.*'],
+                
+            ],
+        ],
+        [
+            'label' => 'Reportes',
+            'pattern' => 'Reportes.*',
+            'items' => [
+                ['label' => 'Resessadrva', 'route' => 'transaccional.reservas.index', 'active' => 'transaccional.reservas.*'],
+                ['label' => 'Boleto', 'route' => 'transaccional.boletos.index', 'active' => 'transaccional.boletos.*'],
+                ['label' => 'Viaje', 'route' => 'transaccional.viajes.index', 'active' => 'transaccional.viajes.*'],
+                ['label' => 'Asignación de conductor', 'route' => 'transaccional.asignacionconductor.index', 'active' => 'transaccional.asignacionconductor.*'],
+                ['label' => 'Incidencia', 'route' => 'transaccional.incidenciaviaje.index', 'active' => 'transaccional.incidenciaviaje.*'],
+                ['label' => 'Encomienda', 'route' => 'transaccional.encomiendas.index', 'active' => 'transaccional.encomiendas.*'],
+                
+            ],
+        ],
+    ];
+@endphp
 
-    <nav class="space-y-1">
+<aside class="app-sidebar">
+    <div class="mb-6 rounded-3xl border border-white/10 bg-white/10 p-4 shadow-lg shadow-slate-950/10 backdrop-blur">
+        <p class="text-xs font-semibold uppercase tracking-[0.3em] text-slate-300">PValle</p>
+        <h2 class="mt-2 text-xl font-semibold text-white">Panel de gestión</h2>
+        <p class="mt-1 text-sm text-slate-300">Operaciones, seguridad y viajes en un solo lugar.</p>
+    </div>
 
-        {{-- SEGURIDAD --}}
-        <div x-data="{ open: {{ request()->routeIs('seguridad.*') ? 'true' : 'false' }} }">
-            <button @click="open = !open"
-                    class="w-full flex justify-between items-center px-3 py-2 rounded-md hover:bg-gray-700 text-sm">
-                <span>Seguridad</span>
-                <span x-text="open ? '−' : '+'"></span>
-            </button>
-            <div x-show="open" class="ml-4 mt-1 space-y-1">
-                <a href="{{ route('seguridad.usuarios.index') }}"
-                   class="block px-3 py-2 rounded-md text-sm hover:bg-gray-700 {{ request()->routeIs('seguridad.usuarios.*') ? 'bg-gray-700 text-white' : '' }}">
-                    Usuario
-                </a>
-                <a href="{{ route('seguridad.roles.index') }}"
-                   class="block px-3 py-2 rounded-md text-sm hover:bg-gray-700 {{ request()->routeIs('seguridad.roles.*') ? 'bg-gray-700 text-white' : '' }}">
-                    Rol
-                </a>
-                <a href="{{ route('seguridad.usuariorol.index') }}"
-                   class="block px-3 py-2 rounded-md text-sm hover:bg-gray-700 {{ request()->routeIs('seguridad.usuariorol.*') ? 'bg-gray-700 text-white' : '' }}">
-                    Usuario Rol
-                </a>
+    <nav class="space-y-3">
+        @foreach ($navigationGroups as $group)
+            <div
+                x-data="{ open: {{ request()->routeIs($group['pattern']) ? 'true' : 'false' }} }"
+                class="rounded-3xl border border-white/10 bg-white/5 p-2"
+            >
+                <button type="button" @click="open = ! open" class="sidebar-group-trigger">
+                    <span>{{ $group['label'] }}</span>
+                    <span class="text-lg leading-none text-slate-300" x-text="open ? '−' : '+'"></span>
+                </button>
+
+                <div x-show="open" x-cloak class="sidebar-group-panel">
+                    @foreach ($group['items'] as $item)
+                        <a
+                            href="{{ route($item['route']) }}"
+                            @class([
+                                'sidebar-link',
+                                'sidebar-link-active' => request()->routeIs($item['active']),
+                            ])
+                        >
+                            {{ $item['label'] }}
+                        </a>
+                    @endforeach
+                </div>
             </div>
-        </div>
-
-        {{-- PARAMETRIZACIÓN --}}
-        <div x-data="{ open: {{ request()->routeIs('parametrizacion.*') ? 'true' : 'false' }} }">
-            <button @click="open = !open"
-                    class="w-full flex justify-between items-center px-3 py-2 rounded-md hover:bg-gray-700 text-sm">
-                <span>Parametrización</span>
-                <span x-text="open ? '−' : '+'"></span>
-            </button>
-            <div x-show="open" class="ml-4 mt-1 space-y-1">
-                <a href="{{ route('parametrizacion.clientes.index') }}"
-                   class="block px-3 py-2 rounded-md text-sm hover:bg-gray-700 {{ request()->routeIs('parametrizacion.clientes.*') ? 'bg-gray-700 text-white' : '' }}">
-                    Cliente
-                <a href="{{ route('parametrizacion.buses.index') }}"
-                   class="block px-3 py-2 rounded-md text-sm hover:bg-gray-700 {{ request()->routeIs('parametrizacion.buses.*') ? 'bg-gray-700 text-white' : '' }}">
-                    Bus
-                </a>
-                <a href="{{ route('parametrizacion.conductores.index') }}"
-                   class="block px-3 py-2 rounded-md text-sm hover:bg-gray-700 {{ request()->routeIs('parametrizacion.conductores.*') ? 'bg-gray-700 text-white' : '' }}">
-                    Conductor
-                </a>
-                <a href="{{ route('parametrizacion.rutas.index') }}"
-                   class="block px-3 py-2 rounded-md text-sm hover:bg-gray-700 {{ request()->routeIs('parametrizacion.rutas.*') ? 'bg-gray-700 text-white' : '' }}">
-                    Ruta
-                </a>
-                <a href="{{ route('parametrizacion.tipoencomiendas.index') }}"
-                   class="block px-3 py-2 rounded-md text-sm hover:bg-gray-700 {{ request()->routeIs('parametrizacion.tipoencomiendas.*') ? 'bg-gray-700 text-white' : '' }}">
-                    Tipo Encomienda
-                </a>
-                <a href="{{ route('parametrizacion.tipoincidencias.index') }}"
-                   class="block px-3 py-2 rounded-md text-sm hover:bg-gray-700 {{ request()->routeIs('parametrizacion.tipoincidencias.*') ? 'bg-gray-700 text-white' : '' }}">
-                    Tipos Incidencia
-                </a>
-            </div>
-        </div>
-
-    {{-- TRANSACCIONAL --}}
-<div x-data="{ open: {{ request()->routeIs('transaccional.*') ? 'true' : 'false' }} }">
-<button @click="open = !open"
-        class="w-full flex justify-between items-center px-3 py-2 rounded-md hover:bg-gray-700 text-sm">
-    <span>Transaccional</span>
-    <span x-text="open ? '−' : '+'"></span>
-</button>
-<div x-show="open" class="ml-4 mt-1 space-y-1">
-    <a href="{{ route('transaccional.viajes.index') }}"
-       class="block px-3 py-2 rounded-md text-sm hover:bg-gray-700 {{ request()->routeIs('transaccional.viajes.*') ? 'bg-gray-700 text-white' : '' }}">
-        Viaje
-    </a>
-    <a href="{{ route('transaccional.asignacionconductor.index') }}"
-       class="block px-3 py-2 rounded-md text-sm hover:bg-gray-700 {{ request()->routeIs('transaccional.asignacionconductor.*') ? 'bg-gray-700 text-white' : '' }}">
-        Asignación de Conductor
-    </a>
-    <a href="{{ route('transaccional.incidenciaviaje.index') }}"
-       class="block px-3 py-2 rounded-md text-sm hover:bg-gray-700 {{ request()->routeIs('transaccional.incidenciaviaje.*') ? 'bg-gray-700 text-white' : '' }}">
-        Incidencias en Viaje
-    </a>
-    <a href="{{ route('transaccional.encomiendas.index') }}"
-       class="block px-3 py-2 rounded-md text-sm hover:bg-gray-700 {{ request()->routeIs('transaccional.encomiendas.*') ? 'bg-gray-700 text-white' : '' }}">
-        Encomienda
-    </a>
-    <a href="{{ route('transaccional.notificaciones.index') }}"
-   class="block px-3 py-2 rounded-md text-sm hover:bg-gray-700 {{ request()->routeIs('transaccional.notificaciones.*') ? 'bg-gray-700 text-white' : '' }}">
-    Notificacion
-    </a>
-    <a href="{{ route('transaccional.asientoviaje.index') }}"
-   class="block px-3 py-2 rounded-md text-sm hover:bg-gray-700 {{ request()->routeIs('transaccional.asientoviaje.*') ? 'bg-gray-700 text-white' : '' }}">
-    Asientos por Viaje
-    </a>
-    <a href="{{ route('transaccional.reservas.index') }}"
-   class="block px-3 py-2 rounded-md text-sm hover:bg-gray-700 {{ request()->routeIs('transaccional.reservas.*') ? 'bg-gray-700 text-white' : '' }}">
-    Reserva
-</a>
-<a href="{{ route('transaccional.boletos.index') }}"
-   class="block px-3 py-2 rounded-md text-sm hover:bg-gray-700 {{ request()->routeIs('transaccional.boletos.*') ? 'bg-gray-700 text-white' : '' }}">
-    Boleto
-</a>
-    <a href="#" class="block px-3 py-2 rounded-md text-sm hover:bg-gray-700">Reservas</a>
-    <a href="#" class="block px-3 py-2 rounded-md text-sm hover:bg-gray-700">Boletos</a>
-    <a href="#" class="block px-3 py-2 rounded-md text-sm hover:bg-gray-700">Pagos</a>
-</div>
-</div>
-
-        {{-- REPORTE --}}
-        <a href="#" class="block px-3 py-2 rounded-md text-sm hover:bg-gray-700">
-            📊 Reporte
-        </a>
-
-        {{-- ESTADÍSTICA --}}
-        <a href="#" class="block px-3 py-2 rounded-md text-sm hover:bg-gray-700">
-            📈 Estadística
-        </a>
-
+        @endforeach
     </nav>
 </aside>

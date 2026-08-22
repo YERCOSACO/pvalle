@@ -1,9 +1,9 @@
-<x-app-layout>
+﻿<x-app-layout>
     <x-slot name="header">
         <div class="flex justify-between items-center">
             <h2 class="font-semibold text-xl text-gray-800 leading-tight">Encomiendas</h2>
             <a href="{{ route('transaccional.encomiendas.create') }}"
-               class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md text-sm">
+               class="btn-primary">
                 Agregar Encomienda
             </a>
         </div>
@@ -19,12 +19,12 @@
             <input type="text" name="search" value="{{ request('search') }}"
                    placeholder="Buscar por destinatario o remitente..."
                    class="flex-1 border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
-            <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md text-sm">
+            <button type="submit" class="btn-primary">
                 Buscar Encomienda
             </button>
             @if(request('search'))
                 <a href="{{ route('transaccional.encomiendas.index') }}"
-                   class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded-md text-sm">
+                   class="btn-secondary">
                     Limpiar
                 </a>
             @endif
@@ -68,16 +68,21 @@
                                 {{ $encomienda->estado }}
                             </span>
                         </td>
-                        <td class="px-6 py-3 flex gap-2">
+                        <td class="px-6 py-3 flex flex-wrap gap-2">
+                            <a href="{{ route('transaccional.encomiendas.imprimir', $encomienda) }}"
+                               target="_blank"
+                               class="btn-primary btn-sm">
+                                Imprimir Ticket
+                            </a>
                             <a href="{{ route('transaccional.encomiendas.edit', $encomienda) }}"
-                               class="bg-yellow-400 hover:bg-yellow-500 text-white px-3 py-1 rounded text-xs">
-                                Modificar Encomienda
+                               class="btn-warning btn-sm">
+                                Modificar
                             </a>
                             <form action="{{ route('transaccional.encomiendas.destroy', $encomienda) }}"
                                   method="POST" onsubmit="return confirm('¿Eliminar esta encomienda?')">
                                 @csrf @method('DELETE')
-                                <button class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-xs">
-                                    Eliminar Encomienda
+                                <button class="btn-danger btn-sm">
+                                    Eliminar
                                 </button>
                             </form>
                         </td>

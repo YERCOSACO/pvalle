@@ -141,8 +141,9 @@
 
     <div class="logo">
 
-        {{-- Cambia la ruta por tu logo --}}
-        <img src="{{ asset('images/logo.png') }}">
+        @if (file_exists(public_path('images/logo.png')))
+            <img src="{{ asset('images/logo.png') }}" alt="Logo de PValle">
+        @endif
 
         <div class="empresa">
             TRANS VALLE

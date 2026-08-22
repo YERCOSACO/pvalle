@@ -1,0 +1,1571 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "PValle API",
+        "description": "Documentación de la API de PValle (Buses Mi Valle)",
+        "version": "1.0.0"
+    },
+    "servers": [
+        {
+            "url": "http://localhost:8000",
+            "description": "Servidor local"
+        }
+    ],
+    "paths": {
+        "/api/login": {
+            "post": {
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Iniciar sesión",
+                "description": "Login de usuario",
+                "operationId": "222b2625838e3c57e017987f73598fda",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "email",
+                                    "password"
+                                ],
+                                "properties": {
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email",
+                                        "example": "usuario@correo.com"
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "format": "password",
+                                        "example": "secreto123"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Login exitoso",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Login exitoso."
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "user": {
+                                                    "properties": {
+                                                        "id": {
+                                                            "type": "integer",
+                                                            "example": 1
+                                                        },
+                                                        "name": {
+                                                            "type": "string",
+                                                            "example": "Juan Pérez"
+                                                        },
+                                                        "email": {
+                                                            "type": "string",
+                                                            "example": "usuario@correo.com"
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                },
+                                                "token": {
+                                                    "type": "string",
+                                                    "example": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9..."
+                                                },
+                                                "token_type": {
+                                                    "type": "string",
+                                                    "example": "Bearer"
+                                                },
+                                                "expires_in": {
+                                                    "type": "integer",
+                                                    "example": 3600
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Credenciales incorrectas",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Credenciales incorrectas."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Error de validación"
+                    }
+                }
+            }
+        },
+        "/api/logout": {
+            "post": {
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Cerrar sesión",
+                "description": "Logout de usuario",
+                "operationId": "ad65cbbd4e9f201619eae184a5961a98",
+                "responses": {
+                    "200": {
+                        "description": "Sesión cerrada correctamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Sesión cerrada correctamente."
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {}
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "No autenticado"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/me": {
+            "get": {
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Obtener usuario autenticado (alias: /api/perfil)",
+                "description": "Obtener usuario autenticado",
+                "operationId": "8367feff40ba10e43187792cad3132c1",
+                "responses": {
+                    "200": {
+                        "description": "Perfil obtenido correctamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Perfil obtenido correctamente."
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "user": {
+                                                    "properties": {
+                                                        "id": {
+                                                            "type": "integer",
+                                                            "example": 1
+                                                        },
+                                                        "name": {
+                                                            "type": "string",
+                                                            "example": "Juan Pérez"
+                                                        },
+                                                        "email": {
+                                                            "type": "string",
+                                                            "example": "usuario@correo.com"
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "No autenticado"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/buses": {
+            "get": {
+                "tags": [
+                    "Buses"
+                ],
+                "summary": "Listar buses",
+                "description": "Display a listing of the resource.",
+                "operationId": "12fe3c758604a2a2ad19401ad253eaee",
+                "parameters": [
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "description": "Buscar por placa, modelo o tipo de bus",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "Número de página",
+                        "required": false,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Listado de buses obtenido correctamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Listado de buses obtenido correctamente."
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/Bus"
+                                            }
+                                        },
+                                        "meta": {
+                                            "properties": {
+                                                "current_page": {
+                                                    "type": "integer",
+                                                    "example": 1
+                                                },
+                                                "last_page": {
+                                                    "type": "integer",
+                                                    "example": 3
+                                                },
+                                                "per_page": {
+                                                    "type": "integer",
+                                                    "example": 15
+                                                },
+                                                "total": {
+                                                    "type": "integer",
+                                                    "example": 42
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "No autenticado"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Buses"
+                ],
+                "summary": "Crear un nuevo bus",
+                "description": "Store a newly created resource in storage.",
+                "operationId": "adf2dc5b0d19671692c4cc8bca52308b",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "placa",
+                                    "capacidad"
+                                ],
+                                "properties": {
+                                    "placa": {
+                                        "type": "string",
+                                        "example": "1234-ABC"
+                                    },
+                                    "capacidad": {
+                                        "type": "integer",
+                                        "example": 40
+                                    },
+                                    "modelo": {
+                                        "type": "string",
+                                        "example": "Mercedes Benz O500",
+                                        "nullable": true
+                                    },
+                                    "tipo_bus": {
+                                        "type": "string",
+                                        "example": "Semicama",
+                                        "nullable": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Bus creado correctamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Bus creado correctamente."
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/Bus"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "No autenticado"
+                    },
+                    "422": {
+                        "description": "Error de validación"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/buses/{bus}": {
+            "get": {
+                "tags": [
+                    "Buses"
+                ],
+                "summary": "Obtener un bus por ID",
+                "description": "Display the specified resource.",
+                "operationId": "6d07ff30da8f135a2a368c38f8001d8f",
+                "parameters": [
+                    {
+                        "name": "bus",
+                        "in": "path",
+                        "description": "ID del bus",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Bus obtenido correctamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Bus obtenido correctamente."
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/Bus"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "No autenticado"
+                    },
+                    "404": {
+                        "description": "Bus no encontrado"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Buses"
+                ],
+                "summary": "Actualizar un bus",
+                "description": "Update the specified resource in storage.",
+                "operationId": "7bf279e18cf4a0c69a7beb6be1309f5b",
+                "parameters": [
+                    {
+                        "name": "bus",
+                        "in": "path",
+                        "description": "ID del bus",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "placa",
+                                    "capacidad"
+                                ],
+                                "properties": {
+                                    "placa": {
+                                        "type": "string",
+                                        "example": "1234-ABC"
+                                    },
+                                    "capacidad": {
+                                        "type": "integer",
+                                        "example": 40
+                                    },
+                                    "modelo": {
+                                        "type": "string",
+                                        "example": "Mercedes Benz O500",
+                                        "nullable": true
+                                    },
+                                    "tipo_bus": {
+                                        "type": "string",
+                                        "example": "Semicama",
+                                        "nullable": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Bus actualizado correctamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Bus actualizado correctamente."
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/Bus"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "No autenticado"
+                    },
+                    "404": {
+                        "description": "Bus no encontrado"
+                    },
+                    "422": {
+                        "description": "Error de validación"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Buses"
+                ],
+                "summary": "Desactivar un bus (soft delete lógico)",
+                "description": "Remove the specified resource from storage.",
+                "operationId": "bad756204c7a3fe6f8dd4ca5ce8645e5",
+                "parameters": [
+                    {
+                        "name": "bus",
+                        "in": "path",
+                        "description": "ID del bus",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Bus desactivado correctamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Bus desactivado correctamente."
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/Bus"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "No autenticado"
+                    },
+                    "404": {
+                        "description": "Bus no encontrado"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/clientes": {
+            "get": {
+                "tags": [
+                    "Clientes"
+                ],
+                "summary": "Listar clientes",
+                "description": "Display a listing of the resource.",
+                "operationId": "3ab1bd0bc1c6d13508917ec1f71f52f5",
+                "parameters": [
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "description": "Buscar por nombre, apellido, cédula o email",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "Número de página",
+                        "required": false,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Listado de clientes obtenido correctamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Listado de clientes obtenido correctamente."
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/Cliente"
+                                            }
+                                        },
+                                        "meta": {
+                                            "properties": {
+                                                "current_page": {
+                                                    "type": "integer",
+                                                    "example": 1
+                                                },
+                                                "last_page": {
+                                                    "type": "integer",
+                                                    "example": 2
+                                                },
+                                                "per_page": {
+                                                    "type": "integer",
+                                                    "example": 15
+                                                },
+                                                "total": {
+                                                    "type": "integer",
+                                                    "example": 25
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "No autenticado"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Clientes"
+                ],
+                "summary": "Crear un nuevo cliente",
+                "description": "Store a newly created resource in storage.",
+                "operationId": "22be7ccdd26efb899a619bd891090f4f",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "nombre",
+                                    "apellido",
+                                    "cedula",
+                                    "email",
+                                    "contrasena",
+                                    "contrasena_confirmation"
+                                ],
+                                "properties": {
+                                    "nombre": {
+                                        "type": "string",
+                                        "example": "María"
+                                    },
+                                    "apellido": {
+                                        "type": "string",
+                                        "example": "Gómez"
+                                    },
+                                    "cedula": {
+                                        "type": "string",
+                                        "example": "9876543"
+                                    },
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email",
+                                        "example": "maria@correo.com"
+                                    },
+                                    "contrasena": {
+                                        "type": "string",
+                                        "format": "password",
+                                        "example": "secreto123"
+                                    },
+                                    "contrasena_confirmation": {
+                                        "type": "string",
+                                        "format": "password",
+                                        "example": "secreto123"
+                                    },
+                                    "telefono": {
+                                        "type": "string",
+                                        "example": "70011122",
+                                        "nullable": true
+                                    },
+                                    "direccion": {
+                                        "type": "string",
+                                        "example": "Av. Siempre Viva 123",
+                                        "nullable": true
+                                    },
+                                    "fecha_nacimiento": {
+                                        "type": "string",
+                                        "format": "date",
+                                        "example": "1995-05-20",
+                                        "nullable": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Cliente creado correctamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Cliente creado correctamente."
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/Cliente"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "No autenticado"
+                    },
+                    "422": {
+                        "description": "Error de validación"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/clientes/{cliente}": {
+            "get": {
+                "tags": [
+                    "Clientes"
+                ],
+                "summary": "Obtener un cliente por ID",
+                "description": "Display the specified resource.",
+                "operationId": "c0fd13ba043d2ca99f23be8586cdd267",
+                "parameters": [
+                    {
+                        "name": "cliente",
+                        "in": "path",
+                        "description": "ID del cliente",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Cliente obtenido correctamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Cliente obtenido correctamente."
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/Cliente"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "No autenticado"
+                    },
+                    "404": {
+                        "description": "Cliente no encontrado"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Clientes"
+                ],
+                "summary": "Actualizar un cliente",
+                "description": "Update the specified resource in storage.",
+                "operationId": "02e774a78bba9aee8339fcb5bba74ea9",
+                "parameters": [
+                    {
+                        "name": "cliente",
+                        "in": "path",
+                        "description": "ID del cliente",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "nombre",
+                                    "apellido",
+                                    "cedula",
+                                    "email"
+                                ],
+                                "properties": {
+                                    "nombre": {
+                                        "type": "string",
+                                        "example": "María"
+                                    },
+                                    "apellido": {
+                                        "type": "string",
+                                        "example": "Gómez"
+                                    },
+                                    "cedula": {
+                                        "type": "string",
+                                        "example": "9876543"
+                                    },
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email",
+                                        "example": "maria@correo.com"
+                                    },
+                                    "contrasena": {
+                                        "description": "Opcional, dejar vacío para no cambiarla",
+                                        "type": "string",
+                                        "format": "password",
+                                        "example": "nuevoSecreto123",
+                                        "nullable": true
+                                    },
+                                    "contrasena_confirmation": {
+                                        "type": "string",
+                                        "format": "password",
+                                        "example": "nuevoSecreto123",
+                                        "nullable": true
+                                    },
+                                    "telefono": {
+                                        "type": "string",
+                                        "example": "70011122",
+                                        "nullable": true
+                                    },
+                                    "direccion": {
+                                        "type": "string",
+                                        "example": "Av. Siempre Viva 123",
+                                        "nullable": true
+                                    },
+                                    "fecha_nacimiento": {
+                                        "type": "string",
+                                        "format": "date",
+                                        "example": "1995-05-20",
+                                        "nullable": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Cliente actualizado correctamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Cliente actualizado correctamente."
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/Cliente"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "No autenticado"
+                    },
+                    "404": {
+                        "description": "Cliente no encontrado"
+                    },
+                    "422": {
+                        "description": "Error de validación"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Clientes"
+                ],
+                "summary": "Desactivar un cliente (soft delete lógico)",
+                "description": "Remove the specified resource from storage.",
+                "operationId": "34091ea4b00349dde0aad1b503809bdb",
+                "parameters": [
+                    {
+                        "name": "cliente",
+                        "in": "path",
+                        "description": "ID del cliente",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Cliente desactivado correctamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Cliente desactivado correctamente."
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/Cliente"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "No autenticado"
+                    },
+                    "404": {
+                        "description": "Cliente no encontrado"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/conductores": {
+            "get": {
+                "tags": [
+                    "Conductores"
+                ],
+                "summary": "Listar conductores",
+                "description": "Display a listing of the resource.",
+                "operationId": "885b04823130454be20e1fffe3c9d2cc",
+                "parameters": [
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "description": "Buscar por nombre, apellido o licencia",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "Número de página",
+                        "required": false,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Listado de conductores obtenido correctamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Listado de conductores obtenido correctamente."
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/Conductor"
+                                            }
+                                        },
+                                        "meta": {
+                                            "properties": {
+                                                "current_page": {
+                                                    "type": "integer",
+                                                    "example": 1
+                                                },
+                                                "last_page": {
+                                                    "type": "integer",
+                                                    "example": 2
+                                                },
+                                                "per_page": {
+                                                    "type": "integer",
+                                                    "example": 15
+                                                },
+                                                "total": {
+                                                    "type": "integer",
+                                                    "example": 18
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "No autenticado"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Conductores"
+                ],
+                "summary": "Crear un nuevo conductor",
+                "description": "Store a newly created resource in storage.",
+                "operationId": "60a7d053cad00605b0c302f3355ba9d0",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "nombre",
+                                    "apellido",
+                                    "licencia"
+                                ],
+                                "properties": {
+                                    "nombre": {
+                                        "type": "string",
+                                        "example": "Carlos"
+                                    },
+                                    "apellido": {
+                                        "type": "string",
+                                        "example": "Rojas"
+                                    },
+                                    "licencia": {
+                                        "type": "string",
+                                        "example": "LIC-00123"
+                                    },
+                                    "telefono": {
+                                        "type": "string",
+                                        "example": "70011122",
+                                        "nullable": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Conductor creado correctamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Conductor creado correctamente."
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/Conductor"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "No autenticado"
+                    },
+                    "422": {
+                        "description": "Error de validación"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/conductores/{conductor}": {
+            "get": {
+                "tags": [
+                    "Conductores"
+                ],
+                "summary": "Obtener un conductor por ID",
+                "description": "Display the specified resource.",
+                "operationId": "74cd5f58ed5dd8f3d30cc1632822d612",
+                "parameters": [
+                    {
+                        "name": "conductor",
+                        "in": "path",
+                        "description": "ID del conductor",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Conductor obtenido correctamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Conductor obtenido correctamente."
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/Conductor"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "No autenticado"
+                    },
+                    "404": {
+                        "description": "Conductor no encontrado"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Conductores"
+                ],
+                "summary": "Actualizar un conductor",
+                "description": "Update the specified resource in storage.",
+                "operationId": "6ffd233ff04152b28cd7eed8af432c14",
+                "parameters": [
+                    {
+                        "name": "conductor",
+                        "in": "path",
+                        "description": "ID del conductor",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "nombre",
+                                    "apellido",
+                                    "licencia"
+                                ],
+                                "properties": {
+                                    "nombre": {
+                                        "type": "string",
+                                        "example": "Carlos"
+                                    },
+                                    "apellido": {
+                                        "type": "string",
+                                        "example": "Rojas"
+                                    },
+                                    "licencia": {
+                                        "type": "string",
+                                        "example": "LIC-00123"
+                                    },
+                                    "telefono": {
+                                        "type": "string",
+                                        "example": "70011122",
+                                        "nullable": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Conductor actualizado correctamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Conductor actualizado correctamente."
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/Conductor"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "No autenticado"
+                    },
+                    "404": {
+                        "description": "Conductor no encontrado"
+                    },
+                    "422": {
+                        "description": "Error de validación"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Conductores"
+                ],
+                "summary": "Desactivar un conductor (soft delete lógico)",
+                "description": "Remove the specified resource from storage.",
+                "operationId": "3d22b9227da26ee4a6a9d33ddd88c416",
+                "parameters": [
+                    {
+                        "name": "conductor",
+                        "in": "path",
+                        "description": "ID del conductor",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Conductor desactivado correctamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Conductor desactivado correctamente."
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/Conductor"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "No autenticado"
+                    },
+                    "404": {
+                        "description": "Conductor no encontrado"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "Bus": {
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "placa": {
+                        "type": "string",
+                        "example": "1234-ABC"
+                    },
+                    "capacidad": {
+                        "type": "integer",
+                        "example": 40
+                    },
+                    "modelo": {
+                        "type": "string",
+                        "example": "Mercedes Benz O500",
+                        "nullable": true
+                    },
+                    "tipo_bus": {
+                        "type": "string",
+                        "example": "Semicama",
+                        "nullable": true
+                    },
+                    "estado_base": {
+                        "type": "boolean",
+                        "example": true
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "type": "object"
+            },
+            "Cliente": {
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "nombre": {
+                        "type": "string",
+                        "example": "María"
+                    },
+                    "apellido": {
+                        "type": "string",
+                        "example": "Gómez"
+                    },
+                    "nombre_completo": {
+                        "type": "string",
+                        "example": "María Gómez"
+                    },
+                    "cedula": {
+                        "type": "string",
+                        "example": "9876543"
+                    },
+                    "email": {
+                        "type": "string",
+                        "format": "email",
+                        "example": "maria@correo.com"
+                    },
+                    "telefono": {
+                        "type": "string",
+                        "example": "70011122",
+                        "nullable": true
+                    },
+                    "direccion": {
+                        "type": "string",
+                        "example": "Av. Siempre Viva 123",
+                        "nullable": true
+                    },
+                    "fecha_nacimiento": {
+                        "type": "string",
+                        "format": "date",
+                        "example": "1995-05-20",
+                        "nullable": true
+                    },
+                    "estado_base": {
+                        "type": "boolean",
+                        "example": true
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "type": "object"
+            },
+            "Conductor": {
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "nombre": {
+                        "type": "string",
+                        "example": "Carlos"
+                    },
+                    "apellido": {
+                        "type": "string",
+                        "example": "Rojas"
+                    },
+                    "nombre_completo": {
+                        "type": "string",
+                        "example": "Carlos Rojas"
+                    },
+                    "licencia": {
+                        "type": "string",
+                        "example": "LIC-00123"
+                    },
+                    "telefono": {
+                        "type": "string",
+                        "example": "70011122",
+                        "nullable": true
+                    },
+                    "estado_base": {
+                        "type": "boolean",
+                        "example": true
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "type": "object"
+            }
+        },
+        "securitySchemes": {
+            "bearerAuth": {
+                "type": "http",
+                "bearerFormat": "JWT",
+                "scheme": "bearer"
+            }
+        }
+    },
+    "tags": [
+        {
+            "name": "Auth",
+            "description": "Autenticación de usuarios"
+        },
+        {
+            "name": "Buses",
+            "description": "Gestión de buses"
+        },
+        {
+            "name": "Clientes",
+            "description": "Gestión de clientes"
+        },
+        {
+            "name": "Conductores",
+            "description": "Gestión de conductores"
+        }
+    ]
+}

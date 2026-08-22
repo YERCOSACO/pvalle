@@ -1,4 +1,4 @@
-<x-app-layout>
+﻿<x-app-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 leading-tight">
             Editar Asignación — {{ $viaje->ruta->nombre_ruta }}
@@ -64,7 +64,7 @@
                     <div class="flex items-center gap-4 pt-2">
                         <x-primary-button>Actualizar</x-primary-button>
                         <a href="{{ route('transaccional.asignacionconductor.index') }}"
-                           class="text-sm text-gray-500 hover:underline">Cancelar</a>
+                           class="form-cancel">Cancelar</a>
                     </div>
                 </div>
             </form>

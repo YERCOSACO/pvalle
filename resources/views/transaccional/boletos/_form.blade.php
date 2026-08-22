@@ -1,4 +1,4 @@
-<div class="space-y-6" x-data="{
+﻿<div class="space-y-6" x-data="{
     viajeId: '',
     cantidadBoletos: 1,
     asientosSeleccionados: [],
@@ -351,6 +351,6 @@
     <div class="flex items-center gap-4 pt-4">
         <x-primary-button>{{ $btnTexto ?? 'Guardar' }}</x-primary-button>
         <a href="{{ route('transaccional.boletos.index') }}"
-           class="text-sm text-gray-500 hover:underline">Cancelar</a>
+           class="form-cancel">Cancelar</a>
     </div>
 </div>

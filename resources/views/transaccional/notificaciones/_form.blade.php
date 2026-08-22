@@ -1,4 +1,4 @@
-<div class="space-y-4">
+﻿<div class="space-y-4">
     <div>
         <x-input-label for="cliente_id" value="Cliente" />
         <select name="cliente_id" id="cliente_id"
@@ -80,6 +80,7 @@
             <option value="">-- Notificación general --</option>
             <option value="incidencia">Incidencia de viaje</option>
             <option value="encomienda">Encomienda</option>
+            <option value="boleto">Boleto</option>
         </select>
 
         <div x-show="origenTipo === 'incidencia'" class="mt-2">
@@ -103,12 +104,23 @@
                 @endforeach
             </select>
         </div>
+
+        <div x-show="origenTipo === 'boleto'" class="mt-2">
+            <select name="origen_id" class="block w-full border-gray-300 rounded-md shadow-sm">
+                <option value="">-- Seleccionar boleto --</option>
+                @foreach($boletos as $boleto)
+                    <option value="{{ $boleto->id }}">
+                        {{ $boleto->reserva->cliente->nombre_completo ?? 'Sin cliente' }} — {{ $boleto->viaje->ruta->nombre_ruta ?? '' }} — Asiento {{ $boleto->numero_asiento }}
+                    </option>
+                @endforeach
+            </select>
+        </div>
     </div>
     @endif
 
     <div class="flex items-center gap-4 pt-2">
         <x-primary-button>{{ $btnTexto ?? 'Guardar' }}</x-primary-button>
         <a href="{{ route('transaccional.notificaciones.index') }}"
-           class="text-sm text-gray-500 hover:underline">Cancelar</a>
+           class="form-cancel">Cancelar</a>
     </div>
 </div>

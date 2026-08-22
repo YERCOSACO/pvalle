@@ -12,30 +12,29 @@
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
     <body class="font-sans antialiased">
-        <div class="min-h-screen bg-gray-100 flex">
+        <div class="app-shell lg:grid lg:min-h-screen lg:grid-cols-[18rem_minmax(0,1fr)]">
+            <div class="hidden border-r border-white/10 bg-slate-950 lg:block">
+                <div class="sticky top-0 min-h-screen p-4">
+                    <x-sidebar />
+                </div>
+            </div>
 
-            {{-- SIDEBAR --}}
-            <x-sidebar />
-
-            {{-- CONTENIDO PRINCIPAL --}}
-            <div class="flex-1 flex flex-col">
-
+            <div class="flex min-h-screen flex-col">
                 @include('layouts.navigation')
 
-                {{-- Page Heading --}}
                 @isset($header)
-                    <header class="bg-white shadow">
-                        <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+                    <header class="page-header-shell">
+                        <div class="page-content-shell py-8">
                             {{ $header }}
                         </div>
                     </header>
                 @endisset
 
-                {{-- Page Content --}}
                 <main class="flex-1">
-                    {{ $slot }}
+                    <div class="page-content-shell">
+                        {{ $slot }}
+                    </div>
                 </main>
-
             </div>
         </div>
     </body>

@@ -21,7 +21,7 @@
                     <div class="w-12 h-12 bg-indigo-600 rounded-xl flex items-center justify-center">
                         <span class="text-white font-bold text-xl">P</span>
                     </div>
-                    <span class="text-white text-2xl font-bold tracking-tight">MiValle</span>
+                    <span class="text-white text-2xl font-bold tracking-tight">PValle</span>
                 </a>
                 <p class="text-slate-400 text-sm mt-1">Sistema de Gestión de Transporte</p>
             </div>
@@ -31,9 +31,7 @@
                 {{ $slot }}
             </div>
 
-            <p class="text-slate-500 text-xs mt-6">
-                &copy; {{ date('Y') }} MiValle. Todos los derechos reservados.
-            </p>
+
         </div>
     </body>
 </html>

@@ -1,42 +1,37 @@
 <x-app-layout>
     <x-slot name="header">
-        <div class="flex justify-between items-center">
-            <h2 class="text-xl font-semibold text-gray-800">
-                Usuarios
-            </h2>
-
-            <a href="{{ route('seguridad.usuarios.create') }}"
-               class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sp">
-                Agregar Usuario
+        <div class="section-toolbar">
+            <div>
+                <h2 class="page-title">Usuarios</h2>
+                <p class="page-subtitle">Gestiona el acceso administrativo del sistema.</p>
+            </div>
+            <a href="{{ route('seguridad.usuarios.create') }}" class="btn-primary">
+                Agregar usuario
             </a>
         </div>
     </x-slot>
 
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-
+    <div class="page-shell">
         @if(session('success'))
-            <div class="mb-4 p-4 bg-green-100 text-green-700 rounded-lg">
+            <div class="alert-success">
                 {{ session('success') }}
             </div>
         @endif
-<form method="GET" action="{{ route('seguridad.usuarios.index') }}" class="mb-4 flex gap-2">
-    <input type="text" name="search" value="{{ request('search') }}"
-           placeholder="Buscar por nombre o email..."
-           class="flex-1 border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
-    <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md text-sm">
-        Buscar
-    </button>
-    @if(request('search'))
-        <a href="{{ route('seguridad.usuarios.index') }}"
-           class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded-md text-sm">
-            Limpiar
-        </a>
-    @endif
-</form>
-        <div class="bg-white shadow rounded-lg overflow-hidden">
+
+        <form method="GET" action="{{ route('seguridad.usuarios.index') }}" class="search-form">
+            <input type="text" name="search" value="{{ request('search') }}" placeholder="Buscar por nombre o email...">
+            <button type="submit" class="btn-primary">Buscar</button>
+            @if(request('search'))
+                <a href="{{ route('seguridad.usuarios.index') }}" class="btn-secondary">
+                    Limpiar
+                </a>
+            @endif
+        </form>
+
+        <div class="table-card overflow-hidden">
 
             <div class="overflow-x-auto">
-                <table class="w-full text-sm">
+                <table class="table-shell text-sm">
                     <thead class="bg-gray-50 text-gray-500 uppercase text-xs border-b">
                         <tr>
                             <th class="px-6 py-3 text-left">#</th>
@@ -50,7 +45,7 @@
 
                     @forelse($usuarios as $usuario)
 
-                        <tr class="hover:bg-gray-50">
+                        <tr>
 
                             <td class="px-6 py-4 text-gray-400">
                                 {{ $loop->iteration }}
@@ -63,11 +58,11 @@
                             </td>
 
                             <td class="px-6 py-4">
-                                <div class="flex flex-col md:flex-row gap-2">
+                                <div class="table-actions">
 
                                     <a href="{{ route('seguridad.usuarios.edit', $usuario) }}"
-                                       class="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded text-xs text-center">
-                                        Modificar Usuario
+                                       class="btn-warning btn-sm text-center">
+                                        Modificar
                                     </a>
 
                                     <form action="{{ route('seguridad.usuarios.destroy', $usuario) }}"
@@ -77,9 +72,8 @@
                                         @csrf
                                         @method('DELETE')
 
-                                        <button
-                                            class="w-full bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sp">
-                                            Eliminar Usuario
+                                        <button class="btn-danger btn-sm w-full">
+                                            Eliminar
                                         </button>
 
                                     </form>
@@ -92,7 +86,7 @@
                     @empty
 
                         <tr>
-                            <td colspan="5" class="px-6 py-8 text-center text-gray-400">
+                            <td colspan="5" class="empty-state">
                                 Sin usuarios registrados.
                             </td>
                         </tr>

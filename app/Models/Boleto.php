@@ -12,6 +12,7 @@ class Boleto extends Model
         'reserva_id', 'viaje_id', 'numero_asiento',
         'nombre_pasajero', 'ci_pasajero', 'telefono_pasajero',
         'precio', 'metodo_pago', 'estado', 'expira_en',
+        'comprobante_path',
     ];
 
     protected function casts(): array
@@ -35,6 +36,11 @@ class Boleto extends Model
     public function scopeActivos(Builder $query): Builder
     {
         return $query->where('estado_base', 1);
+    }
+
+    public function getComprobanteUrlAttribute(): ?string
+    {
+        return $this->comprobante_path ? \Illuminate\Support\Facades\Storage::url($this->comprobante_path) : null;
     }
 
     // Verifica si el boleto pendiente ya expiró

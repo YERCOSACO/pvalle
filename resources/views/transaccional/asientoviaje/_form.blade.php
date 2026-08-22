@@ -1,4 +1,4 @@
-<div class="space-y-4">
+﻿<div class="space-y-4">
     <div>
         <x-input-label value="Viaje" />
         <p class="mt-1 font-medium text-gray-800">
@@ -25,6 +25,6 @@
     <div class="flex items-center gap-4 pt-2">
         <x-primary-button>Actualizar</x-primary-button>
         <a href="{{ route('transaccional.asientoviaje.show', $asientoviaje->viaje_id) }}"
-           class="text-sm text-gray-500 hover:underline">Cancelar</a>
+           class="form-cancel">Cancelar</a>
     </div>
 </div>

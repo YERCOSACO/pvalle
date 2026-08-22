@@ -1,9 +1,8 @@
-<div class="space-y-4">
-    <div class="grid grid-cols-2 gap-4">
+<div class="form-stack">
+    <div class="form-grid">
         <div>
             <x-input-label for="ruta_id" value="Ruta" />
-            <select name="ruta_id" id="ruta_id"
-                    class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
+            <select name="ruta_id" id="ruta_id" class="form-input mt-1 block w-full">
                 <option value="">-- Seleccionar --</option>
                 @foreach($rutas as $ruta)
                     <option value="{{ $ruta->id }}"
@@ -17,8 +16,7 @@
 
         <div>
             <x-input-label for="bus_id" value="Bus" />
-            <select name="bus_id" id="bus_id"
-                    class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
+            <select name="bus_id" id="bus_id" class="form-input mt-1 block w-full">
                 <option value="">-- Seleccionar --</option>
                 @foreach($buses as $bus)
                     <option value="{{ $bus->id }}"
@@ -31,7 +29,7 @@
         </div>
     </div>
 
-    <div class="grid grid-cols-2 gap-4">
+    <div class="form-grid">
         <div>
             <x-input-label for="fecha_viaje" value="Fecha del viaje" />
             <x-text-input id="fecha_viaje" name="fecha_viaje" type="date" class="mt-1 block w-full"
@@ -50,8 +48,7 @@
     @isset($viaje)
     <div>
         <x-input-label for="estado" value="Estado del viaje" />
-        <select name="estado" id="estado"
-                class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
+        <select name="estado" id="estado" class="form-input mt-1 block w-full">
             <option value="programado" {{ old('estado', $viaje->estado) == 'programado' ? 'selected' : '' }}>Programado</option>
             <option value="en curso" {{ old('estado', $viaje->estado) == 'en curso' ? 'selected' : '' }}>En curso</option>
             <option value="finalizado" {{ old('estado', $viaje->estado) == 'finalizado' ? 'selected' : '' }}>Finalizado</option>
@@ -60,9 +57,9 @@
     </div>
     @endisset
 
-    <div class="flex items-center gap-4 pt-2">
+    <div class="form-actions">
         <x-primary-button>{{ $btnTexto ?? 'Guardar' }}</x-primary-button>
         <a href="{{ route('transaccional.viajes.index') }}"
-           class="text-sm text-gray-500 hover:underline">Cancelar</a>
+           class="form-cancel">Cancelar</a>
     </div>
 </div>

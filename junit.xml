@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites>
+  <testsuite name="C:\laragon\www\pvalle\phpunit.xml" tests="1" assertions="2" errors="1" failures="0" skipped="0" time="0.544097">
+    <testsuite name="Feature" tests="1" assertions="2" errors="1" failures="0" skipped="0" time="0.544097">
+      <testsuite name="Tests\Feature\ClienteBoletoPaymentTest" file="C:\laragon\www\pvalle\tests\Feature\ClienteBoletoPaymentTest.php" tests="1" assertions="2" errors="1" failures="0" skipped="0" time="0.544097">
+        <testcase name="test_cliente_can_mark_pending_qr_boleto_as_paid_and_receive_internal_notification" file="C:\laragon\www\pvalle\tests\Feature\ClienteBoletoPaymentTest.php" line="20" class="Tests\Feature\ClienteBoletoPaymentTest" classname="Tests.Feature.ClienteBoletoPaymentTest" assertions="2" time="0.544097">
+          <error type="Error">Tests\Feature\ClienteBoletoPaymentTest::test_cliente_can_mark_pending_qr_boleto_as_paid_and_receive_internal_notification&#13;
+Error: Call to a member function all() on array
+&#13;
+C:\laragon\www\pvalle\vendor\laravel\framework\src\Illuminate\Testing\TestResponseAssert.php:81
+C:\laragon\www\pvalle\vendor\laravel\framework\src\Illuminate\Testing\TestResponseAssert.php:47
+C:\laragon\www\pvalle\vendor\laravel\framework\src\Illuminate\Testing\TestResponse.php:433
+C:\laragon\www\pvalle\vendor\laravel\framework\src\Illuminate\Testing\TestResponse.php:207
+C:\laragon\www\pvalle\tests\Feature\ClienteBoletoPaymentTest.php:84</error>
+        </testcase>
+      </testsuite>
+    </testsuite>
+  </testsuite>
+</testsuites>

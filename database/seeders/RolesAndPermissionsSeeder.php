@@ -40,12 +40,6 @@ class RolesAndPermissionsSeeder extends Seeder
             'asientoviaje.ver', 'asientoviaje.crear', 'asientoviaje.editar', 'asientoviaje.eliminar',
             'boletos.ver', 'boletos.crear', 'boletos.editar', 'boletos.eliminar',
             'reportes.ver', 'estadisticas.ver',
-            'reservas.ver', 'reservas.crear', 'reservas.editar', 'reservas.eliminar',
-            // Reportes
-            'reportes.ver',
-
-            // Estadísticas
-            'estadisticas.ver',
         ];
 
         foreach ($permisos as $permiso) {
@@ -73,8 +67,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'asientoviaje.ver', 'asientoviaje.crear', 'asientoviaje.editar', 'asientoviaje.eliminar',
             'boletos.ver', 'boletos.crear', 'boletos.editar', 'boletos.eliminar',
             'reportes.ver', 'estadisticas.ver',
-            'reservas.ver', 'reservas.crear', 'reservas.editar', 'reservas.eliminar',
-            ]);
+        ]);
 
         // Vendedor solo ve reportes y estadísticas
         $vendedor->syncPermissions([

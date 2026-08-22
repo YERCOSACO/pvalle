@@ -1,4 +1,4 @@
-<div class="space-y-4">
+﻿<div class="space-y-4">
     <div class="grid grid-cols-2 gap-4">
         <div>
             <x-input-label for="origen" value="Origen" />
@@ -34,6 +34,6 @@
     <div class="flex items-center gap-4 pt-2">
         <x-primary-button>{{ $btnTexto ?? 'Guardar' }}</x-primary-button>
         <a href="{{ route('parametrizacion.rutas.index') }}"
-           class="text-sm text-gray-500 hover:underline">Cancelar</a>
+           class="form-cancel">Cancelar</a>
     </div>
 </div>

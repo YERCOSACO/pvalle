@@ -1,4 +1,4 @@
-<div class="space-y-4" x-data="{
+﻿<div class="space-y-4" x-data="{
     remitenteEsCliente: {{ old('cliente_id', $encomienda->cliente_id ?? '') ? 'true' : 'false' }},
     precios: {{ $tiposEncomienda->pluck('precio', 'id')->toJson() }},
     tipoSeleccionado: '{{ old('tipo_encomienda_id', $encomienda->tipo_encomienda_id ?? '') }}',
@@ -134,6 +134,6 @@
     <div class="flex items-center gap-4 pt-4">
         <x-primary-button>{{ $btnTexto ?? 'Guardar' }}</x-primary-button>
         <a href="{{ route('transaccional.encomiendas.index') }}"
-           class="text-sm text-gray-500 hover:underline">Cancelar</a>
+           class="form-cancel">Cancelar</a>
     </div>
 </div>

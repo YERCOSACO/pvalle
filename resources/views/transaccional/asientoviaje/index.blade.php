@@ -1,4 +1,4 @@
-<x-app-layout>
+﻿<x-app-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 leading-tight">Asientos por Viaje</h2>
     </x-slot>
@@ -9,12 +9,12 @@
             <input type="text" name="search" value="{{ request('search') }}"
                    placeholder="Buscar por origen o destino..."
                    class="flex-1 border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
-            <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md text-sm">
+            <button type="submit" class="btn-primary">
                 Buscar
             </button>
             @if(request('search'))
                 <a href="{{ route('transaccional.asientoviaje.index') }}"
-                   class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded-md text-sm">
+                   class="btn-secondary">
                     Limpiar
                 </a>
             @endif
@@ -42,7 +42,7 @@
                         <td class="px-6 py-3 text-gray-500">{{ $viaje->bus->capacidad }} asientos</td>
                         <td class="px-6 py-3">
                             <a href="{{ route('transaccional.asientoviaje.show', $viaje) }}"
-                               class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1 rounded text-xs">
+                               class="btn-primary btn-sm">
                                 Ver Asientos
                             </a>
                         </td>

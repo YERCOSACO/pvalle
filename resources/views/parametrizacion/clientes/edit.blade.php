@@ -1,12 +1,13 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            Editar — {{ $cliente->nombre_completo }}
-        </h2>
+        <div>
+            <h2 class="page-title">Editar cliente</h2>
+            <p class="page-subtitle">Actualiza la información de {{ $cliente->nombre_completo }}.</p>
+        </div>
     </x-slot>
 
-    <div class="py-8 max-w-3xl mx-auto px-4">
-        <div class="bg-white shadow rounded-lg p-6">
+    <div class="page-shell mx-auto max-w-3xl">
+        <div class="page-panel form-card p-6 sm:p-8">
             <form method="POST" action="{{ route('parametrizacion.clientes.update', $cliente) }}">
                 @csrf @method('PUT')
                 @include('parametrizacion.clientes._form', ['btnTexto' => 'Actualizar Cliente'])

@@ -1,9 +1,9 @@
-<x-app-layout>
+﻿<x-app-layout>
     <x-slot name="header">
         <div class="flex justify-between items-center">
             <h2 class="font-semibold text-xl text-gray-800 leading-tight">Asignación de Conductores</h2>
             <a href="{{ route('transaccional.asignacionconductor.create') }}"
-               class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md text-sm">
+               class="btn-primary">
                 Agregar Asignación
             </a>
         </div>
@@ -18,12 +18,12 @@
     <input type="text" name="search" value="{{ request('search') }}"
            placeholder="Buscar por origen o destino del viaje..."
            class="flex-1 border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
-    <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md text-sm">
+    <button type="submit" class="btn-primary">
         Buscar Asignación
     </button>
     @if(request('search'))
         <a href="{{ route('transaccional.asignacionconductor.index') }}"
-           class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded-md text-sm">
+           class="btn-secondary">
             Limpiar
         </a>
     @endif
@@ -63,13 +63,13 @@
                         </td>
                         <td class="px-6 py-3 flex gap-2">
                             <a href="{{ route('transaccional.asignacionconductor.edit', $viaje) }}"
-                               class="bg-yellow-400 hover:bg-yellow-500 text-white px-3 py-1 rounded text-xs">
+                               class="btn-warning btn-sm">
                                 Modificar Asignación    
                             </a>
                             <form action="{{ route('transaccional.asignacionconductor.destroy', $viaje) }}"
                                   method="POST" onsubmit="return confirm('¿Eliminar toda la asignación de este viaje?')">
                                 @csrf @method('DELETE')
-                                <button class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-xs">
+                                <button class="btn-danger btn-sm">
                                     Eliminar Asignación
                                 </button>
                             </form>

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Transaccional;
 
 use App\Http\Controllers\Controller;
+use App\Models\Boleto;
 use App\Models\IncidenciaViaje;
 use App\Models\Notificacion;
 use App\Models\Viaje;
@@ -124,23 +125,41 @@ class IncidenciaViajeController extends Controller
     }
 
     if (in_array($nuevoEstado, ['retrasado', 'cancelado'])) {
-    /** @var \Carbon\Carbon $fechaViaje */
-    $fechaViaje = $viaje->fecha_viaje;
+        /** @var \Carbon\Carbon $fechaViaje */
+        $fechaViaje = $viaje->fecha_viaje;
 
-    $mensaje = $nuevoEstado === 'cancelado'
-        ? "Tu viaje del {$fechaViaje->format('d/m/Y')} ha sido CANCELADO por: {$incidencia->tipoIncidencia->nombre}."
-        : "Tu viaje del {$fechaViaje->format('d/m/Y')} se encuentra RETRASADO por: {$incidencia->tipoIncidencia->nombre}.";
+        $mensaje = $nuevoEstado === 'cancelado'
+            ? "Tu viaje del {$fechaViaje->format('d/m/Y')} ha sido CANCELADO por: {$incidencia->tipoIncidencia->nombre}."
+            : "Tu viaje del {$fechaViaje->format('d/m/Y')} se encuentra RETRASADO por: {$incidencia->tipoIncidencia->nombre}.";
 
-    // pendiente: notificar clientes cuando exista Boleto
-}
-        // Cuando exista Boleto, aquí se recorrerán los clientes reales con boleto en este viaje.
-        // Por ahora, dejamos el método listo para usarse así:
-        //
-        // foreach ($viaje->clientesConBoleto() as $cliente) {
-        //     NotificacionController::crearAutomatica(
-        //         $cliente->id, 'Aviso de tu viaje', $mensaje, $incidencia, 'alerta', 'alta'
-        //     );
-        // }
-    
+        $clientes = Boleto::with('reserva.cliente')
+            ->where('viaje_id', $viaje->id)
+            ->where('estado_base', 1)
+            ->whereIn('estado', ['pendiente', 'confirmado'])
+            ->get()
+            ->pluck('reserva.cliente')
+            ->filter()
+            ->unique('id');
+
+        foreach ($clientes as $cliente) {
+            Notificacion::updateOrCreate(
+                [
+                    'cliente_id' => $cliente->id,
+                    'referenciable_id' => $incidencia->id,
+                    'referenciable_type' => IncidenciaViaje::class,
+                ],
+                [
+                    'titulo' => 'Aviso de tu viaje',
+                    'mensaje' => $mensaje,
+                    'tipo' => 'alerta',
+                    'canal' => 'sistema',
+                    'prioridad' => 'alta',
+                    'fecha_envio' => now(),
+                    'estado' => 'enviada',
+                    'estado_base' => 1,
+                ]
+            );
+        }
+    }
 }
 }

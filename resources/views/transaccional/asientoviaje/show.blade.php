@@ -1,4 +1,4 @@
-<x-app-layout>
+﻿<x-app-layout>
     <x-slot name="header">
         <div class="flex justify-between items-center">
             <div>
@@ -12,11 +12,11 @@
             </div>
             <div class="flex gap-3">
                 <a href="{{ route('transaccional.boletos.create') }}"
-                   class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md text-sm">
+                   class="btn-primary">
                     + Nuevo Boleto
                 </a>
                 <a href="{{ route('transaccional.boletos.index') }}"
-                   class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded-md text-sm">
+                   class="btn-secondary">
                     ← Volver
                 </a>
             </div>
@@ -175,7 +175,7 @@
                             <p class="text-4xl mb-3">🪑</p>
                             <p class="text-sm">Sin pasajeros en este viaje.</p>
                             <a href="{{ route('transaccional.boletos.create') }}"
-                               class="mt-4 inline-block bg-indigo-600 text-white px-4 py-2 rounded-md text-sm hover:bg-indigo-700">
+                               class="mt-4 btn-primary">
                                 + Registrar primer boleto
                             </a>
                         </div>
@@ -214,21 +214,21 @@
                                         @if($b->estado === 'pendiente' && !$b->esta_expirado)
                                             <form method="POST" action="{{ route('transaccional.boletos.confirmar-pago', $b) }}">
                                                 @csrf @method('PATCH')
-                                                <button class="bg-green-500 hover:bg-green-600 text-white px-2 py-1 rounded text-xs">✓</button>
+                                                <button class="btn-success btn-sm">✓</button>
                                             </form>
                                         @endif
 
                                         <a href="{{ route('transaccional.boletos.edit', $b) }}"
-                                           class="bg-yellow-400 hover:bg-yellow-500 text-white px-2 py-1 rounded text-xs">✏️</a>
+                                           class="btn-warning btn-sm">✏️</a>
 
                                         <a href="{{ route('transaccional.boletos.imprimir', $b) }}"
                                            target="_blank"
-                                           class="bg-gray-600 hover:bg-gray-700 text-white px-2 py-1 rounded text-xs">🖨️</a>
+                                           class="btn-neutral btn-sm">🖨️</a>
 
                                         <form method="POST" action="{{ route('transaccional.boletos.destroy', $b) }}"
                                               onsubmit="return confirm('¿Eliminar boleto de {{ $b->nombre_pasajero }}?')">
                                             @csrf @method('DELETE')
-                                            <button class="bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded text-xs">🗑️</button>
+                                            <button class="btn-danger btn-sm">🗑️</button>
                                         </form>
                                     </div>
                                 </div>

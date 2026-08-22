@@ -1,9 +1,9 @@
-<x-app-layout>
+﻿<x-app-layout>
     <x-slot name="header">
         <div class="flex justify-between items-center">
             <h2 class="font-semibold text-xl text-gray-800 leading-tight">Notificaciones</h2>
             <a href="{{ route('transaccional.notificaciones.create') }}"
-               class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md text-sm">
+               class="btn-primary">
                 + Nueva
             </a>
         </div>
@@ -19,12 +19,12 @@
             <input type="text" name="search" value="{{ request('search') }}"
                    placeholder="Buscar por título o cliente..."
                    class="flex-1 border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
-            <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md text-sm">
+            <button type="submit" class="btn-primary">
                 Buscar
             </button>
             @if(request('search'))
                 <a href="{{ route('transaccional.notificaciones.index') }}"
-                   class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded-md text-sm">
+                   class="btn-secondary">
                     Limpiar
                 </a>
             @endif
@@ -49,7 +49,12 @@
                         <td class="px-6 py-3 text-gray-400">{{ $loop->iteration }}</td>
                         <td class="px-6 py-3 font-medium">{{ $notificacion->cliente->nombre_completo }}</td>
                         <td class="px-6 py-3 text-gray-600">{{ $notificacion->titulo }}</td>
-                        <td class="px-6 py-3 text-gray-500">{{ $notificacion->origen_legible }}</td>
+                        <td class="px-6 py-3 text-gray-500">
+                            {{ $notificacion->origen_legible }}
+                            @if($notificacion->origenDetalle)
+                                — {{ $notificacion->origenDetalle }}
+                            @endif
+                        </td>
                         <td class="px-6 py-3">
                             @php
                                 $coloresTipo = ['info' => 'bg-blue-100 text-blue-700', 'alerta' => 'bg-orange-100 text-orange-700', 'urgente' => 'bg-red-100 text-red-700'];
@@ -68,13 +73,13 @@
                         </td>
                         <td class="px-6 py-3 flex gap-2">
                             <a href="{{ route('transaccional.notificaciones.edit', $notificacion) }}"
-                               class="bg-yellow-400 hover:bg-yellow-500 text-white px-3 py-1 rounded text-xs">
+                               class="btn-warning btn-sm">
                                 Editar
                             </a>
                             <form action="{{ route('transaccional.notificaciones.destroy', $notificacion) }}"
                                   method="POST" onsubmit="return confirm('¿Eliminar esta notificación?')">
                                 @csrf @method('DELETE')
-                                <button class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-xs">
+                                <button class="btn-danger btn-sm">
                                     Eliminar
                                 </button>
                             </form>

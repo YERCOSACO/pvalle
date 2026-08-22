@@ -132,10 +132,12 @@ class BoletoController extends Controller
 
 DB::transaction(function () use ($request) {
     $viaje = Viaje::with('ruta')->findOrFail($request->viaje_id);
-    $reserva = Reserva::findOrFail($request->reserva_id);
+    $reserva = Reserva::with('cliente')->findOrFail($request->reserva_id);
     $ocupados = $this->asientosOcupados($request->viaje_id);
     $estado = $request->metodo_pago === 'QR' ? 'pendiente' : 'confirmado';
     $expiraEn = $request->metodo_pago === 'QR' ? Carbon::now()->addMinutes(15) : null;
+    $primerBoleto = null;
+    $asientosSeleccionados = [];
 
     foreach ($request->numero_asiento as $i => $asiento) {
         if (in_array($asiento, $ocupados)) {
@@ -151,18 +153,13 @@ DB::transaction(function () use ($request) {
             $precioFinal += self::RECARGO_MASCOTA;
         }
 
-        // nombre_pasajero es NOT NULL en la BD: si no es pasajero normal,
-        // le ponemos una etiqueta fija en vez de null
         $nombre = match ($tipo) {
             'comodidad' => 'Comodidad (espacio extra)',
             'mascota'   => 'Mascota',
             default     => $request->nombre_pasajero[$i],
         };
 
-        // updateOrCreate en vez de create: si ya existe una fila vieja
-        // (expirada/cancelada) para este viaje+asiento, la reescribe en
-        // vez de chocar contra la restricción única (viaje_id, numero_asiento)
-        Boleto::updateOrCreate(
+        $boleto = Boleto::updateOrCreate(
             [
                 'viaje_id'       => $request->viaje_id,
                 'numero_asiento' => $asiento,
@@ -182,7 +179,9 @@ DB::transaction(function () use ($request) {
             ]
         );
 
-        $ocupados[] = $asiento; // evita que el mismo asiento se seleccione 2 veces en el mismo envío
+        $primerBoleto = $primerBoleto ?? $boleto;
+        $asientosSeleccionados[] = $asiento;
+        $ocupados[] = $asiento;
     }
 
     $reserva->update([
@@ -192,6 +191,26 @@ DB::transaction(function () use ($request) {
     $confirmados = $reserva->boletos()->where('estado', 'confirmado')->count();
     if ($confirmados >= $reserva->cantidad) {
         $reserva->update(['estado' => 'confirmada']);
+    }
+
+    if ($reserva->cliente && $primerBoleto) {
+        $asientosTexto = implode(', ', $asientosSeleccionados);
+        $titulo = $request->metodo_pago === 'QR'
+            ? 'Pago pendiente de boleto'
+            : 'Tu boleto ha sido confirmado';
+        $fechaViaje = Carbon::parse($viaje->fecha_viaje)->format('d/m/Y');
+        $mensaje = $request->metodo_pago === 'QR'
+            ? "Tu/ Tus boleto(s) para {$viaje->ruta->nombre_ruta} el {$fechaViaje} a las {$viaje->hora_salida} están pendientes de pago. Asiento(s): {$asientosTexto}."
+            : "Tu/ Tus boleto(s) para {$viaje->ruta->nombre_ruta} el {$fechaViaje} a las {$viaje->hora_salida} han sido confirmados. Asiento(s): {$asientosTexto}.";
+
+        NotificacionController::crearAutomatica(
+            $reserva->cliente->id,
+            $titulo,
+            $mensaje,
+            $primerBoleto,
+            'info',
+            'normal'
+        );
     }
 });
 
@@ -214,6 +233,19 @@ DB::transaction(function () use ($request) {
             'estado'    => 'confirmado',
             'expira_en' => null,
         ]);
+
+        $boleto->load('reserva.cliente', 'viaje.ruta');
+        if ($boleto->reserva?->cliente) {
+            $fechaViaje = Carbon::parse($boleto->viaje->fecha_viaje)->format('d/m/Y');
+            NotificacionController::crearAutomatica(
+                $boleto->reserva->cliente->id,
+                'Pago del boleto confirmado',
+                "Tu boleto para {$boleto->viaje->ruta->nombre_ruta} el {$fechaViaje} a las {$boleto->viaje->hora_salida} y asiento {$boleto->numero_asiento} fue confirmado.",
+                $boleto,
+                'info',
+                'normal'
+            );
+        }
 
         return back()->with('success', 'Pago confirmado correctamente.');
     }
@@ -239,8 +271,8 @@ DB::transaction(function () use ($request) {
             'estado'            => 'required|in:pendiente,confirmado,cancelado',
         ]);
 
-        // nombre_pasajero es NOT NULL en la BD: si no es pasajero normal,
-        // le ponemos una etiqueta fija en vez de null
+        $estadoAnterior = $boleto->estado;
+
         $nombre = match ($request->tipo_pasajero) {
             'comodidad' => 'Comodidad (espacio extra)',
             'mascota'   => 'Mascota',
@@ -255,6 +287,21 @@ DB::transaction(function () use ($request) {
             'mascota'           => $request->tipo_pasajero === 'mascota',
             'estado'            => $request->estado,
         ]);
+
+        if ($estadoAnterior !== $boleto->estado) {
+            $boleto->load('reserva.cliente', 'viaje.ruta');
+            if ($boleto->reserva?->cliente) {
+                $fechaViaje = Carbon::parse($boleto->viaje->fecha_viaje)->format('d/m/Y');
+                NotificacionController::crearAutomatica(
+                    $boleto->reserva->cliente->id,
+                    'Cambio de estado del boleto',
+                    "El estado de tu boleto para {$boleto->viaje->ruta->nombre_ruta} el {$fechaViaje} a las {$boleto->viaje->hora_salida} y asiento {$boleto->numero_asiento} cambió a {$boleto->estado}.",
+                    $boleto,
+                    'info',
+                    'normal'
+                );
+            }
+        }
 
         return redirect()->route('transaccional.boletos.index')
                          ->with('success', 'Boleto actualizado correctamente.');

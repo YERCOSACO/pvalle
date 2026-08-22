@@ -1,5 +1,5 @@
-<div class="space-y-4">
-    <div class="grid grid-cols-2 gap-4">
+<div class="form-stack">
+    <div class="form-grid">
         <div>
             <x-input-label for="nombre" value="Nombre" />
             <x-text-input id="nombre" name="nombre" type="text" class="mt-1 block w-full"
@@ -15,7 +15,7 @@
         </div>
     </div>
 
-    <div class="grid grid-cols-2 gap-4">
+    <div class="form-grid">
         <div>
             <x-input-label for="cedula" value="Cédula" />
             <x-text-input id="cedula" name="cedula" type="text" class="mt-1 block w-full"
@@ -31,12 +31,12 @@
         </div>
     </div>
 
-    <div class="grid grid-cols-2 gap-4">
+    <div class="form-grid">
         <div>
             <x-input-label for="contrasena" value="Contraseña" />
             <x-text-input id="contrasena" name="contrasena" type="password" class="mt-1 block w-full" />
             @isset($cliente)
-                <p class="text-gray-400 text-xs mt-1">Dejar vacío para no cambiar</p>
+                <p class="form-hint">Dejar vacío para mantener la contraseña actual.</p>
             @endisset
             <x-input-error :messages="$errors->get('contrasena')" class="mt-1" />
         </div>
@@ -48,7 +48,7 @@
         </div>
     </div>
 
-    <div class="grid grid-cols-2 gap-4">
+    <div class="form-grid">
         <div>
             <x-input-label for="telefono" value="Teléfono" />
             <x-text-input id="telefono" name="telefono" type="text" class="mt-1 block w-full"
@@ -68,9 +68,9 @@
             value="{{ old('direccion', $cliente->direccion ?? '') }}" />
     </div>
 
-    <div class="flex items-center gap-4 pt-2">
+    <div class="form-actions">
         <x-primary-button>{{ $btnTexto ?? 'Guardar' }}</x-primary-button>
         <a href="{{ route('parametrizacion.clientes.index') }}"
-           class="text-sm text-gray-500 hover:underline">Cancelar</a>
+           class="form-cancel">Cancelar</a>
     </div>
 </div>

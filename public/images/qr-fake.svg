@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="48" fill="#ffffff" stroke="#7c3aed" stroke-width="24"/>
+  <rect x="64" y="64" width="112" height="112" fill="#7c3aed"/>
+  <rect x="64" y="336" width="112" height="112" fill="#7c3aed"/>
+  <rect x="336" y="64" width="112" height="112" fill="#7c3aed"/>
+  <rect x="176" y="176" width="80" height="80" fill="#7c3aed"/>
+  <rect x="264" y="176" width="112" height="112" fill="#7c3aed"/>
+  <rect x="176" y="264" width="80" height="80" fill="#7c3aed"/>
+  <rect x="336" y="264" width="48" height="48" fill="#7c3aed"/>
+  <rect x="304" y="336" width="48" height="48" fill="#7c3aed"/>
+  <rect x="176" y="336" width="48" height="48" fill="#7c3aed"/>
+  <rect x="240" y="336" width="48" height="48" fill="#7c3aed"/>
+  <rect x="176" y="240" width="48" height="48" fill="#7c3aed"/>
+  <rect x="240" y="240" width="48" height="48" fill="#ffffff"/>
+  <rect x="304" y="240" width="48" height="48" fill="#7c3aed"/>
+  <text x="256" y="450" font-family="Arial, sans-serif" font-size="32" fill="#7c3aed" text-anchor="middle">QR DE PAGO</text>
+</svg>

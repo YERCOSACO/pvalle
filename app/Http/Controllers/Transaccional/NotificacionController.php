@@ -7,6 +7,7 @@ use App\Models\Notificacion;
 use App\Models\Cliente;
 use App\Models\IncidenciaViaje;
 use App\Models\Encomienda;
+use App\Models\Boleto;
 use Illuminate\Http\Request;
 
 class NotificacionController extends Controller
@@ -38,8 +39,9 @@ class NotificacionController extends Controller
         $clientes = Cliente::where('estado_base', 1)->get();
         $incidencias = IncidenciaViaje::with('viaje.ruta')->where('estado_base', 1)->get();
         $encomiendas = Encomienda::where('estado_base', 1)->get();
+        $boletos = Boleto::with('reserva.cliente', 'viaje.ruta')->where('estado_base', 1)->get();
 
-        return view('transaccional.notificaciones.create', compact('clientes', 'incidencias', 'encomiendas'));
+        return view('transaccional.notificaciones.create', compact('clientes', 'incidencias', 'encomiendas', 'boletos'));
     }
 
     public function store(Request $request)
@@ -53,13 +55,14 @@ class NotificacionController extends Controller
             'tipo'               => 'required|in:info,alerta,urgente',
             'canal'              => 'required|in:sistema,email,sms',
             'prioridad'          => 'required|in:baja,normal,alta',
-            'origen_tipo'        => 'nullable|in:incidencia,encomienda',
+            'origen_tipo'        => 'nullable|in:incidencia,encomienda,boleto',
             'origen_id'          => 'nullable|integer',
         ]);
 
         $referenciableType = match ($request->origen_tipo) {
             'incidencia' => IncidenciaViaje::class,
             'encomienda' => Encomienda::class,
+            'boleto'     => Boleto::class,
             default      => null,
         };
 

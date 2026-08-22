@@ -43,8 +43,23 @@ class Notificacion extends Model
         return match ($this->referenciable_type) {
             \App\Models\IncidenciaViaje::class => 'Incidencia de viaje',
             \App\Models\Encomienda::class      => 'Encomienda',
+            \App\Models\Boleto::class          => 'Boleto',
           //  \App\Models\Reserva::class         => 'Reserva',
             default                            => 'General',
+        };
+    }
+
+    public function getOrigenDetalleAttribute(): string
+    {
+        if (! $this->referenciable) {
+            return '';
+        }
+
+        return match ($this->referenciable_type) {
+            \App\Models\IncidenciaViaje::class => $this->referenciable->tipoIncidencia->nombre ?? 'Incidencia',
+            \App\Models\Encomienda::class      => $this->referenciable->destinatario_nombre ?? 'Encomienda',
+            \App\Models\Boleto::class          => 'Asiento ' . ($this->referenciable->numero_asiento ?? '—'),
+            default                            => '',
         };
     }
 }

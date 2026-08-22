@@ -7,6 +7,7 @@ use App\Models\Encomienda;
 use App\Models\Cliente;
 use App\Models\TipoEncomienda;
 use App\Models\Viaje;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 
 class EncomiendaController extends Controller
@@ -73,10 +74,13 @@ class EncomiendaController extends Controller
     ]);
 
     if ($encomienda->cliente_id) {
+        $encomienda->load('viaje');
+        $fechaViaje = optional($encomienda->viaje)->fecha_viaje?->format('d/m/Y');
+
         \App\Http\Controllers\Transaccional\NotificacionController::crearAutomatica(
             $encomienda->cliente_id,
             'Tu encomienda fue recibida',
-            "Tu paquete para {$encomienda->destinatario_nombre} fue recibido y viajará el {$encomienda->viaje->fecha_viaje->format('d/m/Y')}.",
+            'Tu paquete para ' . $encomienda->destinatario_nombre . ' fue recibido y viajará el ' . ($fechaViaje ?? 'próxima fecha') . '.',
             $encomienda,
             'info',
             'normal'
@@ -116,6 +120,7 @@ class EncomiendaController extends Controller
             'estado'                 => 'required|in:recibido,en transito,entregado,cancelado',
         ]);
 
+        $estadoAnterior = $encomienda->estado;
         $tipo = TipoEncomienda::find($request->tipo_encomienda_id);
         $total = $tipo->precio * $request->cantidad;
 
@@ -134,8 +139,30 @@ class EncomiendaController extends Controller
             'estado'                 => $request->estado,
         ]);
 
+        if ($encomienda->cliente_id && $estadoAnterior !== $encomienda->estado) {
+            $encomienda->load('viaje.ruta');
+            $fechaViaje = Carbon::parse($encomienda->viaje->fecha_viaje)->format('d/m/Y');
+            \App\Http\Controllers\Transaccional\NotificacionController::crearAutomatica(
+                $encomienda->cliente_id,
+                'Cambio de estado de encomienda',
+                "El estado de tu encomienda para {$encomienda->destinatario_nombre} cambió a {$encomienda->estado}. Viaje: {$encomienda->viaje->ruta->nombre_ruta} el {$fechaViaje} a las {$encomienda->viaje->hora_salida}.",
+                $encomienda,
+                'info',
+                'normal'
+            );
+        }
+
         return redirect()->route('transaccional.encomiendas.index')
                          ->with('success', 'Encomienda actualizada correctamente.');
+    }
+
+    public function imprimir(Encomienda $encomienda)
+    {
+        $this->authorize('encomiendas.ver');
+
+        $encomienda->load(['viaje.ruta', 'viaje.bus', 'cliente', 'tipoEncomienda']);
+
+        return view('transaccional.encomiendas.imprimir', compact('encomienda'));
     }
 
     public function destroy(Encomienda $encomienda)

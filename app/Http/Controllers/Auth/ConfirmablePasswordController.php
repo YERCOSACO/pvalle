@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 class ConfirmablePasswordController extends Controller
@@ -28,7 +27,7 @@ class ConfirmablePasswordController extends Controller
             'email' => $request->user()->email,
             'password' => $request->password,
         ])) {
-            throw ValidationException::withMessages([
+            return redirect()->route('password.confirm')->withErrors([
                 'password' => __('auth.password'),
             ]);
         }

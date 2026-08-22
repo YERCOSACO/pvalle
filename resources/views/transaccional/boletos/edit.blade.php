@@ -1,4 +1,4 @@
-<x-app-layout>
+﻿<x-app-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 leading-tight">Editar Boleto</h2>
     </x-slot>
@@ -32,7 +32,7 @@
 
                     <form method="POST" action="{{ route('transaccional.boletos.confirmar-pago', $boleto) }}" class="inline ml-3">
                         @csrf @method('PATCH')
-                        <button class="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded text-xs">
+                        <button class="btn-warning btn-sm">
                             Confirmar pago QR ahora
                         </button>
                     </form>

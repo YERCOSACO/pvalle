@@ -1,4 +1,4 @@
-<div class="space-y-4">
+<div class="form-stack">
     <div>
         <x-input-label for="name" value="Nombre completo" />
         <x-text-input id="name" name="name" type="text" class="mt-1 block w-full"
@@ -26,9 +26,9 @@
     </div>
 
 
-    <div class="flex items-center gap-4 pt-2">
+    <div class="form-actions">
         <x-primary-button>{{ $btnTexto ?? 'Guardar' }}</x-primary-button>
         <a href="{{ route('seguridad.usuarios.index') }}"
-           class="text-sm text-gray-500 hover:underline">Cancelar</a>
+           class="form-cancel">Cancelar</a>
     </div>
 </div>

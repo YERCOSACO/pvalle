@@ -1,4 +1,4 @@
-<div class="space-y-4">
+﻿<div class="space-y-4">
     <div>
         <x-input-label for="cliente_id" value="Cliente" />
         <select name="cliente_id" id="cliente_id"
@@ -36,6 +36,6 @@
     <div class="flex items-center gap-4 pt-2">
         <x-primary-button>{{ $btnTexto ?? 'Guardar' }}</x-primary-button>
         <a href="{{ route('transaccional.reservas.index') }}"
-           class="text-sm text-gray-500 hover:underline">Cancelar</a>
+           class="form-cancel">Cancelar</a>
     </div>
 </div>
