@@ -1,152 +1,342 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <title>{{ config('app.name', 'PValle') }}</title>
+        <title>{{ config('app.name', 'Trans Comarapa') }} | Viajes Santa Cruz - Comarapa</title>
+
+        <meta name="description" content="Compra tus pasajes de bus Santa Cruz - Comarapa con Trans Comarapa. Reserva en línea, elige tu asiento y viaja seguro.">
+        <meta property="og:title" content="Trans Comarapa | Viajes Santa Cruz - Comarapa">
+        <meta property="og:description" content="Reserva pasajes de bus Santa Cruz - Comarapa en línea. Horarios, asientos disponibles y pago seguro.">
+        <meta property="og:type" content="website">
+        <meta property="og:image" content="{{ asset('images/og-trans-comarapa.jpg') }}">
+        <meta name="theme-color" content="#0B2A1E">
+        <link rel="icon" href="{{ asset('favicon.ico') }}" sizes="any">
 
         <link rel="preconnect" href="https://fonts.bunny.net">
-        <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
-
+        <link href="https://fonts.bunny.net/css?family=fraunces:500,600,700,600i|figtree:400,500,600,700|plus-jakarta-sans:400,500,600,700,800&display=swap" rel="stylesheet" />
         @vite(['resources/css/app.css', 'resources/js/app.js'])
+        <style>
+            :root{
+                --mv-bosque-900:#0B2A1E;
+                --mv-bosque-800:#0F3626;
+                --mv-selva-600:#1B6B45;
+                --mv-selva-500:#238453;
+                --mv-brote-400:#6FCF64;
+                --mv-brote-300:#9BE28C;
+                --mv-sol-400:#F2C94C;
+                --mv-piedra-50:#F6F3E9;
+                --mv-piedra-100:#EEE9D8;
+                --mv-tinta-900:#12241C;
+                --mv-blanco:#FBFAF5;
+            }
+            [x-cloak]{ display:none !important; }
+            .font-display{ font-family:'Fraunces', ui-serif, Georgia, serif; }
+            .font-eyebrow{ font-family:'Figtree', ui-sans-serif, sans-serif; }
+            body{ font-family:'Plus Jakarta Sans', ui-sans-serif, sans-serif; color:var(--mv-tinta-900); background:var(--mv-piedra-50); }
+
+            /* Cresta de montañas — elemento firma, hace eco del logo */
+            .mv-cresta{
+                position:absolute; left:0; right:0; bottom:-1px; height:120px;
+                background-repeat:no-repeat; background-size:cover; background-position:bottom;
+            }
+            .mv-cresta svg{ width:100%; height:100%; display:block; }
+            .mv-cresta-watermark{
+                position:absolute; inset:0; opacity:.06; pointer-events:none;
+            }
+
+            .mv-btn-primary{
+                background:var(--mv-brote-400); color:var(--mv-bosque-900);
+                box-shadow:0 10px 30px -12px rgba(111,207,100,.55);
+            }
+            .mv-btn-primary:hover{ background:var(--mv-brote-300); }
+            .mv-btn-dark{
+                background:var(--mv-bosque-900); color:var(--mv-blanco);
+            }
+            .mv-btn-dark:hover{ background:var(--mv-selva-600); }
+            .mv-btn-ghost{
+                background:rgba(255,255,255,.10); border:1px solid rgba(255,255,255,.25); color:#fff;
+            }
+            .mv-btn-ghost:hover{ background:rgba(255,255,255,.18); }
+
+            .mv-card{
+                background:var(--mv-blanco);
+                border:1px solid rgba(15,54,38,.08);
+            }
+            .mv-card:hover{ border-color:rgba(27,107,69,.35); }
+
+            .mv-pill{
+                background:rgba(27,107,69,.10); color:var(--mv-selva-600);
+            }
+            .mv-pill-sol{
+                background:rgba(242,201,76,.18); color:#8a6d16;
+            }
+
+            .mv-input{
+                background:var(--mv-piedra-50);
+                border:1px solid rgba(15,54,38,.14);
+            }
+            .mv-input:focus{
+                outline:none; border-color:var(--mv-selva-500);
+                box-shadow:0 0 0 3px rgba(35,132,83,.18);
+            }
+        </style>
     </head>
-    <body class="font-sans antialiased bg-slate-950 text-slate-100">
-        <div class="min-h-screen overflow-hidden bg-[radial-gradient(circle_at_top_left,_rgba(14,165,233,0.18),_transparent_32%),radial-gradient(circle_at_bottom_right,_rgba(168,85,247,0.16),_transparent_20%),linear-gradient(180deg,_#020617,_#0b1221)]">
-            <header class="border-b border-white/10 bg-slate-950/90 backdrop-blur-xl">
-                <div class="page-content-shell flex flex-col gap-4 py-6 md:flex-row md:items-center md:justify-between">
-                    <div class="flex items-center gap-3">
-                        <div class="flex h-12 w-12 items-center justify-center rounded-3xl bg-gradient-to-br from-sky-500 to-violet-600 shadow-lg shadow-sky-500/20">
-                            <span class="text-xl font-semibold text-white">P</span>
-                        </div>
-                        <div>
-                            <p class="text-sm uppercase tracking-[0.32em] text-slate-400">PValle</p>
-                            <h1 class="text-xl font-semibold text-white">Tu reserva y viaje en una sola app</h1>
-                        </div>
+    <body class="landing-page antialiased">
+        @php
+            $heroImage = file_exists(public_path('images/hero-comarapa.jpg'))
+                ? asset('images/hero-comarapa.jpg')
+                : asset('images/logo.png');
+
+            $destinos = [
+                ['Comarapa', 'Pueblo cabecera de ruta: ferias, quesos y gastronomía local', file_exists(public_path('images/destinos/comarapa.jpg')) ? 'images/destinos/comarapa.jpg' : 'images/logo.png'],
+                ['Laguna Verde', 'Aguas de tono esmeralda en la zona alta de las montañas', file_exists(public_path('images/destinos/laguna-verde.jpg')) ? 'images/destinos/laguna-verde.jpg' : 'images/logo.png'],
+                ['Jardín de las Cactáceas', 'Más de 50 especies de cactus, único reservorio así en Bolivia', file_exists(public_path('images/destinos/cactaceas.jpg')) ? 'images/destinos/cactaceas.jpg' : 'images/logo.png'],
+                ['Represa La Cañada', 'Pesca y recreación a 5 km del pueblo', file_exists(public_path('images/destinos/la-canada.jpg')) ? 'images/destinos/la-canada.jpg' : 'images/logo.png'],
+            ];
+        @endphp
+        <div class="min-h-screen">
+            <header x-data="{ mobileOpen: false }" class="border-b border-black/5 bg-[var(--mv-blanco)]/90 backdrop-blur-xl sticky top-0 z-30">
+                <div class="page-content-shell flex min-h-20 items-center justify-between gap-5">
+                    <x-brand-logo href="{{ url('/') }}" compact />
+
+                    <nav aria-label="Navegación principal" class="hidden items-center gap-7 text-sm font-semibold text-[var(--mv-tinta-900)]/70 md:flex">
+                        <a href="#viajes" class="transition hover:text-[var(--mv-selva-600)]">Viajes</a>
+                        <a href="#destinos" class="transition hover:text-[var(--mv-selva-600)]">Destinos</a>
+                        <a href="#como-funciona" class="transition hover:text-[var(--mv-selva-600)]">Cómo funciona</a>
+                    </nav>
+
+                    <div class="hidden items-center gap-2 md:flex">
+                        <a href="{{ route('login') }}" class="px-3 py-2 text-sm font-semibold text-[var(--mv-tinta-900)]/70 hover:text-[var(--mv-tinta-900)]">Ingresar</a>
+                        <a href="{{ route('cliente.register') }}" class="mv-btn-primary rounded-xl px-4 py-2.5 text-sm font-bold transition">Registrarse</a>
                     </div>
 
-                    <nav class="flex flex-wrap items-center gap-3">
-                        <a href="{{ route('login') }}" class="btn btn-primary">Iniciar sesión</a>
-                        @if (Route::has('register'))
-                            <a href="{{ route('register') }}" class="btn btn-secondary">Regístrate ahora</a>
-                        @endif
+                    <button
+                        type="button"
+                        @click="mobileOpen = !mobileOpen"
+                        :aria-expanded="mobileOpen"
+                        aria-controls="mobile-menu"
+                        aria-label="Abrir menú"
+                        class="flex h-11 w-11 items-center justify-center rounded-lg text-[var(--mv-tinta-900)] transition hover:bg-black/5 md:hidden"
+                    >
+                        <svg x-show="!mobileOpen" class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                        </svg>
+                        <svg x-show="mobileOpen" x-cloak class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </div>
+
+                <div
+                    id="mobile-menu"
+                    x-show="mobileOpen"
+                    x-cloak
+                    x-transition
+                    @click.outside="mobileOpen = false"
+                    @keydown.escape.window="mobileOpen = false"
+                    class="border-t border-black/5 bg-[var(--mv-blanco)] md:hidden"
+                >
+                    <nav aria-label="Menú móvil" class="page-content-shell flex flex-col gap-1 py-3 text-sm font-semibold text-[var(--mv-tinta-900)]/80">
+                        <a href="#viajes" @click="mobileOpen = false" class="rounded-lg px-3 py-2.5 hover:bg-black/5">Viajes</a>
+                        <a href="#destinos" @click="mobileOpen = false" class="rounded-lg px-3 py-2.5 hover:bg-black/5">Destinos</a>
+                        <a href="#como-funciona" @click="mobileOpen = false" class="rounded-lg px-3 py-2.5 hover:bg-black/5">Cómo funciona</a>
+                        <div class="mt-2 flex flex-col gap-2 border-t border-black/5 pt-3">
+                            <a href="{{ route('login') }}" class="rounded-lg px-3 py-2.5 text-center hover:bg-black/5">Ingresar</a>
+                            <a href="{{ route('cliente.register') }}" class="mv-btn-primary rounded-xl px-4 py-2.5 text-center font-bold">Registrarse</a>
+                        </div>
                     </nav>
                 </div>
             </header>
 
-            <main class="page-content-shell py-16">
-                <div class="grid gap-12 lg:grid-cols-[1.05fr_0.95fr] lg:items-center">
-                    <section class="space-y-8 lg:max-w-2xl">
-                        <span class="inline-flex rounded-full border border-slate-700 bg-slate-900/80 px-4 py-1 text-xs uppercase tracking-[0.32em] text-slate-300">Reserva tu viaje desde Santa Cruz</span>
-                        <div class="space-y-6">
-                            <h2 class="text-4xl font-semibold tracking-tight text-white sm:text-5xl">Viaja seguro y consulta tu encomienda en tiempo real.</h2>
-                            <p class="text-lg leading-8 text-slate-300">En PValle puedes reservar tu pasaje desde Santa Cruz hacia Cochabamba, Sucre, Tarija y otros destinos cercanos. Todo en una experiencia simple para el pasajero.</p>
+            <main>
+                <section class="relative isolate overflow-hidden bg-[var(--mv-bosque-900)] pb-28">
+                    <img src="{{ $heroImage }}" alt="Bus de Trans Comarapa en la ruta Santa Cruz - Comarapa" class="absolute inset-0 -z-20 h-full w-full object-cover opacity-20" loading="eager" decoding="async">
+                    <div class="absolute inset-0 -z-10 bg-[linear-gradient(115deg,_#0B2A1E_15%,_rgba(15,54,38,0.94)_55%,_rgba(35,132,83,0.45))]"></div>
+
+                    <div class="mx-auto grid max-w-7xl gap-10 px-5 pt-16 sm:px-8 sm:pt-24 lg:grid-cols-[0.95fr_1.05fr] lg:items-center lg:px-10">
+                        <div class="max-w-xl text-white">
+                            <p class="font-eyebrow text-xs font-bold uppercase tracking-[0.28em] text-[var(--mv-brote-300)]">Tu próximo viaje empieza aquí</p>
+                            <h1 class="font-display mt-5 text-4xl font-semibold leading-[1.05] text-white sm:text-6xl">
+                                Viaja seguro<br>a Comarapa.
+                            </h1>
+                            <p class="mt-5 max-w-md text-base leading-7 text-slate-200/85 sm:text-lg">
+                                Encuentra pasajes, organiza tu ruta y mantén toda la información de tu viaje en un solo lugar.
+                            </p>
+                            <div class="mt-7 flex flex-wrap gap-3">
+                                <a href="#buscador" class="mv-btn-primary rounded-xl px-5 py-3 text-sm font-bold transition">Buscar un viaje</a>
+                                <a href="#viajes" class="mv-btn-ghost rounded-xl px-5 py-3 text-sm font-bold transition">Ver salidas</a>
+                            </div>
                         </div>
 
-                        <div class="grid gap-4 sm:grid-cols-2">
-                            <div class="rounded-[2rem] border border-slate-800 bg-slate-900/80 p-6 shadow-[0_24px_80px_-40px_rgba(15,23,42,0.7)]">
-                                <p class="text-sm uppercase tracking-[0.32em] text-sky-300">Fácil</p>
-                                <h3 class="mt-3 text-xl font-semibold text-white">Sube tu pasaje rápido</h3>
-                                <p class="mt-2 text-sm leading-6 text-slate-400">Selecciona tu destino, tu asiento y confirma con el método que prefieras.</p>
+                        <form id="buscador" class="mv-card rounded-[2rem] p-5 shadow-2xl shadow-black/40 sm:p-7" action="{{ route('viajes.buscar') }}" method="GET">
+                            <p class="font-eyebrow text-xs font-bold uppercase tracking-[0.2em] text-[var(--mv-selva-600)]">Reserva tu pasaje</p>
+                            <h2 class="font-display mt-2 text-2xl font-semibold text-[var(--mv-tinta-900)]">¿A dónde quieres ir?</h2>
+                            <div class="mt-6 grid gap-4 sm:grid-cols-2">
+                                <label class="text-sm font-semibold text-[var(--mv-tinta-900)]/80">Desde
+                                    <select name="origen" class="mv-input mt-2 w-full rounded-lg px-3 py-2.5 text-sm">
+                                        <option value="">Ciudad de origen</option>
+                                        @foreach($ciudades ?? ['Santa Cruz de la Sierra', 'Comarapa'] as $ciudad)
+                                            <option value="{{ $ciudad }}" @selected(request('origen') === $ciudad)>{{ $ciudad }}</option>
+                                        @endforeach
+                                    </select>
+                                </label>
+                                <label class="text-sm font-semibold text-[var(--mv-tinta-900)]/80">Hacia
+                                    <select name="destino" class="mv-input mt-2 w-full rounded-lg px-3 py-2.5 text-sm">
+                                        <option value="">Ciudad de destino</option>
+                                        @foreach($ciudades ?? ['Comarapa', 'Santa Cruz de la Sierra'] as $ciudad)
+                                            <option value="{{ $ciudad }}" @selected(request('destino') === $ciudad)>{{ $ciudad }}</option>
+                                        @endforeach
+                                    </select>
+                                </label>
+                                <label class="text-sm font-semibold text-[var(--mv-tinta-900)]/80">Fecha de salida
+                                    <input name="fecha" type="date" value="{{ request('fecha') }}" min="{{ now()->toDateString() }}" class="mv-input mt-2 w-full rounded-lg px-3 py-2.5 text-sm">
+                                </label>
+                                <label class="text-sm font-semibold text-[var(--mv-tinta-900)]/80">Pasajeros
+                                    <input name="pasajeros" type="number" min="1" max="45" step="1" value="{{ request('pasajeros', 1) }}" class="mv-input mt-2 w-full rounded-lg px-3 py-2.5 text-sm">
+                                </label>
                             </div>
-                            <div class="rounded-[2rem] border border-slate-800 bg-slate-900/80 p-6 shadow-[0_24px_80px_-40px_rgba(15,23,42,0.7)]">
-                                <p class="text-sm uppercase tracking-[0.32em] text-violet-300">Transparente</p>
-                                <h3 class="mt-3 text-xl font-semibold text-white">Tu encomienda en línea</h3>
-                                <p class="mt-2 text-sm leading-6 text-slate-400">Sigue tu paquete hasta el destino y recibe avisos cuando esté listo para recoger.</p>
-                            </div>
+                            <button type="submit" class="mv-btn-dark mt-5 w-full rounded-xl py-3 text-sm font-bold transition">
+                                Buscar pasajes <span aria-hidden="true">→</span>
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- Cresta de montañas: firma visual que replica el logo -->
+                    <div class="mv-cresta">
+                        <svg viewBox="0 0 1440 160" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M0 160 L0 90 L160 40 L260 80 L380 20 L520 90 L640 55 L760 100 L900 45 L1040 95 L1180 60 L1300 100 L1440 70 L1440 160 Z" fill="#EEE9D8" opacity="0.35"/>
+                            <path d="M0 160 L0 110 L180 65 L320 105 L460 55 L600 110 L760 75 L920 115 L1080 70 L1240 112 L1440 90 L1440 160 Z" fill="#F6F3E9" opacity="0.7"/>
+                            <path d="M0 160 L0 135 L200 108 L380 140 L560 100 L740 138 L920 105 L1120 140 L1440 118 L1440 160 Z" fill="#F6F3E9"/>
+                        </svg>
+                    </div>
+                </section>
+
+                <section id="viajes" class="page-content-shell -mt-14 pb-16 pt-6 relative z-10">
+                    <div class="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
+                        <div>
+                            <p class="font-eyebrow text-xs font-bold uppercase tracking-[0.22em] text-[var(--mv-selva-600)]">Salidas disponibles</p>
+                            <h2 class="font-display mt-2 text-3xl font-semibold text-[var(--mv-tinta-900)] sm:text-4xl">Viajes que puedes reservar</h2>
+                            <p class="mt-2 text-sm text-[var(--mv-tinta-900)]/60">Solo mostramos viajes futuros con asientos disponibles.</p>
+                            @if(request()->hasAny(['origen', 'destino']))
+                                <p class="mt-2 text-sm font-semibold text-[var(--mv-selva-600)]">
+                                    Resultados: {{ request('origen') ?: 'cualquier origen' }} → {{ request('destino') ?: 'cualquier destino' }}
+                                </p>
+                            @endif
                         </div>
+                        <a href="#buscador" class="text-sm font-semibold text-[var(--mv-selva-600)] hover:text-[var(--mv-bosque-900)]">Nueva búsqueda →</a>
+                    </div>
 
-                        <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
-                            <a href="{{ route('register') }}" class="btn btn-primary w-full sm:w-auto">Regístrate ahora</a>
-                            <a href="{{ route('login') }}" class="btn btn-secondary w-full sm:w-auto">Inicia sesión</a>
-                        </div>
-
-                        <div class="grid gap-4 sm:grid-cols-3">
-                            <div class="rounded-[2rem] border border-slate-800 bg-slate-900/80 p-5 text-center">
-                                <p class="text-sm uppercase tracking-[0.32em] text-slate-400">1</p>
-                                <p class="mt-4 text-base font-semibold text-white">Elige tu fecha</p>
-                            </div>
-                            <div class="rounded-[2rem] border border-slate-800 bg-slate-900/80 p-5 text-center">
-                                <p class="text-sm uppercase tracking-[0.32em] text-slate-400">2</p>
-                                <p class="mt-4 text-base font-semibold text-white">Compra tu boleto</p>
-                            </div>
-                            <div class="rounded-[2rem] border border-slate-800 bg-slate-900/80 p-5 text-center">
-                                <p class="text-sm uppercase tracking-[0.32em] text-slate-400">3</p>
-                                <p class="mt-4 text-base font-semibold text-white">Revisa tu viaje</p>
-                            </div>
-                        </div>
-                    </section>
-
-                    <section class="relative">
-                        <div class="absolute -right-12 top-10 h-52 w-52 rounded-full bg-sky-500/10 blur-3xl"></div>
-                        <div class="absolute -left-10 bottom-10 h-40 w-40 rounded-full bg-violet-500/10 blur-3xl"></div>
-                        <div class="relative overflow-hidden rounded-[2.5rem] border border-white/10 bg-slate-900/90 p-6 shadow-2xl shadow-slate-950/40 backdrop-blur-xl">
-                            <div class="relative overflow-hidden rounded-[2rem] bg-slate-950/90 p-4">
-                                <img src="https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?auto=format&fit=crop&w=1200&q=80" alt="Pasajeros abordando un bus moderno" class="h-72 w-full rounded-[1.75rem] object-cover object-center shadow-lg shadow-slate-950/40" loading="lazy" decoding="async">
-                                <div class="absolute inset-x-0 bottom-0 rounded-b-[1.75rem] bg-gradient-to-t from-slate-950/95 to-transparent px-4 py-4 text-slate-100">
-                                    <p class="text-sm uppercase tracking-[0.28em] text-slate-400">Viaje destacado</p>
-                                    <p class="mt-2 text-lg font-semibold">Santa Cruz → Cochabamba</p>
-                                    <p class="text-sm text-slate-400">Salida 10:00 | Terminal A</p>
-                                </div>
-                            </div>
-
-                            <div class="mt-6 rounded-[2rem] border border-slate-800 bg-slate-950/90 p-6 shadow-inner shadow-slate-950/40">
-                                <div class="flex items-center justify-between gap-4">
+                    <div class="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                        @forelse($viajesProximos as $viaje)
+                            <article class="mv-card rounded-2xl p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
+                                <div class="flex items-start justify-between gap-3">
                                     <div>
-                                        <p class="text-xs uppercase tracking-[0.32em] text-slate-400">Estado del viaje</p>
-                                        <p class="mt-2 text-lg font-semibold text-white">Confirmado</p>
+                                        <p class="text-xs font-bold uppercase tracking-[0.16em] text-[var(--mv-tinta-900)]/40">{{ optional($viaje->fecha_viaje)->format('d/m/Y') }}</p>
+                                        <h3 class="font-display mt-2 text-lg font-semibold text-[var(--mv-tinta-900)]">{{ optional($viaje->ruta)->nombre_ruta ?? 'Ruta disponible' }}</h3>
                                     </div>
-                                    <span class="rounded-full bg-emerald-500/10 px-3 py-2 text-xs font-semibold text-emerald-300">A tiempo</span>
+                                    <span class="mv-pill status-pill rounded-full px-3 py-1 text-xs font-bold">{{ $viaje->hora_salida ? substr($viaje->hora_salida, 0, 5) : '--:--' }}</span>
                                 </div>
-
-                                <div class="mt-6 grid gap-4 sm:grid-cols-2">
-                                    <div class="rounded-3xl bg-slate-950/80 p-4">
-                                        <p class="text-xs uppercase tracking-[0.32em] text-slate-500">Asiento</p>
-                                        <p class="mt-2 text-lg font-semibold text-white">B12</p>
-                                        <p class="text-slate-500">Coche 4</p>
-                                    </div>
-                                    <div class="rounded-3xl bg-slate-950/80 p-4">
-                                        <p class="text-xs uppercase tracking-[0.32em] text-slate-500">Encomienda</p>
-                                        <p class="mt-2 text-lg font-semibold text-white">KG 12</p>
-                                        <p class="text-slate-500">Listo para entrega</p>
-                                    </div>
+                                <div class="mt-5 flex items-center justify-between border-t border-black/5 pt-4 text-sm text-[var(--mv-tinta-900)]/60">
+                                    <span>{{ $viaje->asientos_disponibles }} cupo(s) disponible(s)</span>
+                                    <a href="{{ route('cliente.reservas.create', ['viaje_id' => $viaje->id, 'pasajeros' => request('pasajeros', 1)]) }}" class="font-bold text-[var(--mv-selva-600)]">Seleccionar →</a>
                                 </div>
+                            </article>
+                        @empty
+                            <div class="col-span-full empty-state rounded-2xl border border-dashed border-[var(--mv-selva-600)]/25 bg-white/60 p-8 text-center text-[var(--mv-tinta-900)]/60">
+                                No hay viajes disponibles para esta búsqueda.
                             </div>
-                        </div>
-                    </section>
-                </div>
+                        @endforelse
+                    </div>
+                </section>
 
-                <section class="mt-16 rounded-[2rem] border border-white/10 bg-slate-900/80 px-6 py-10 shadow-2xl shadow-slate-950/40 backdrop-blur-xl">
-                    <div class="grid gap-8 lg:grid-cols-3">
-                        <div class="space-y-4">
-                            <p class="text-sm uppercase tracking-[0.32em] text-slate-400">Ideal para clientes</p>
-                            <h3 class="text-3xl font-semibold text-white">Todo tu viaje en una sola pantalla</h3>
-                            <p class="text-slate-400">Reserva, revisa tu asiento y sigue tus envíos desde tu cuenta de cliente. Especial para pasajeros que viajan desde Santa Cruz.</p>
+                <section id="destinos" class="border-y border-black/5 bg-[var(--mv-piedra-100)]">
+                    <div class="page-content-shell py-16">
+                        <div class="max-w-xl">
+                            <p class="font-eyebrow text-xs font-bold uppercase tracking-[0.22em] text-[var(--mv-selva-600)]">Inspiración para tu ruta</p>
+                            <h2 class="font-display mt-2 text-3xl font-semibold text-[var(--mv-tinta-900)] sm:text-4xl">Lo que puedes conocer en Comarapa.</h2>
                         </div>
-
-                        <div class="space-y-4 rounded-[2rem] border border-slate-800 bg-slate-950/80 p-6">
-                            <p class="text-sm uppercase tracking-[0.28em] text-slate-400">Destinos</p>
-                            <ul class="space-y-3 text-slate-300">
-                                <li class="flex items-start gap-2"><span class="mt-1 inline-flex h-6 w-6 items-center justify-center rounded-full bg-sky-500/20 text-sky-300">✓</span>Santa Cruz → Cochabamba</li>
-                                <li class="flex items-start gap-2"><span class="mt-1 inline-flex h-6 w-6 items-center justify-center rounded-full bg-sky-500/20 text-sky-300">✓</span>Santa Cruz → Sucre</li>
-                                <li class="flex items-start gap-2"><span class="mt-1 inline-flex h-6 w-6 items-center justify-center rounded-full bg-sky-500/20 text-sky-300">✓</span>Santa Cruz → Tarija</li>
-                            </ul>
+                        {{--
+                            Destinos reales de la provincia Manuel María Caballero / Comarapa.
+                            Reemplaza las rutas de imagen con fotos propias en public/images/destinos/.
+                        --}}
+                        <div class="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                            @foreach($destinos as $destino)
+                                <a href="#viajes" class="group relative min-h-60 overflow-hidden rounded-2xl bg-[var(--mv-bosque-900)] p-5 text-white">
+                                    <img src="{{ asset($destino[2]) }}" alt="{{ $destino[0] }}" loading="lazy" decoding="async" class="absolute inset-0 h-full w-full object-cover opacity-60 transition duration-500 group-hover:scale-105">
+                                    <div class="absolute inset-0 bg-gradient-to-t from-[#0B2A1E] via-[#0B2A1E]/50 to-transparent"></div>
+                                    <span class="relative flex h-full flex-col justify-end">
+                                        <strong class="font-display text-xl">{{ $destino[0] }}</strong>
+                                        <small class="mt-1 text-slate-200/80">{{ $destino[1] }}</small>
+                                    </span>
+                                </a>
+                            @endforeach
                         </div>
+                    </div>
+                </section>
 
-                        <div class="space-y-4 rounded-[2rem] border border-slate-800 bg-slate-950/80 p-6">
-                            <p class="text-sm uppercase tracking-[0.28em] text-slate-400">Ventajas</p>
-                            <ul class="space-y-3 text-slate-300">
-                                <li>• Compra rápida y confirmación al instante.</li>
-                                <li>• Notificaciones de viaje vía SMS o correo.</li>
-                                <li>• Consulta tus encomiendas y horarios desde el perfil.</li>
-                            </ul>
+                <section id="como-funciona" class="page-content-shell py-16">
+                    <div class="grid gap-10 lg:grid-cols-[0.8fr_1.2fr] lg:items-center">
+                        <div>
+                            <p class="font-eyebrow text-xs font-bold uppercase tracking-[0.22em] text-[var(--mv-selva-600)]">Así de fácil</p>
+                            <h2 class="font-display mt-2 text-3xl font-semibold text-[var(--mv-tinta-900)] sm:text-4xl">Tu viaje, sin vueltas.</h2>
+                            <p class="mt-4 max-w-md leading-7 text-[var(--mv-tinta-900)]/65">Elige una salida, completa tus datos y recibe la información de tu reserva para viajar con tranquilidad.</p>
+                        </div>
+                        <div class="grid gap-4 sm:grid-cols-3">
+                            @foreach([['01', 'Busca', 'Indica origen, destino y fecha.'], ['02', 'Elige', 'Compara las mejores salidas.'], ['03', 'Viaja', 'Recibe tu boleto y disfruta.']] as $paso)
+                                <div class="mv-card rounded-2xl p-5 shadow-sm">
+                                    <b class="font-display text-2xl text-[var(--mv-selva-600)]">{{ $paso[0] }}</b>
+                                    <h3 class="mt-8 font-semibold text-[var(--mv-tinta-900)]">{{ $paso[1] }}</h3>
+                                    <p class="mt-2 text-sm leading-6 text-[var(--mv-tinta-900)]/60">{{ $paso[2] }}</p>
+                                </div>
+                            @endforeach
                         </div>
                     </div>
                 </section>
             </main>
 
-            <footer class="page-content-shell py-8 text-center text-slate-500">
-                <p>&copy; {{ date('Y') }} PValle. Todos los derechos reservados.</p>
+            <footer class="relative overflow-hidden bg-[var(--mv-bosque-900)] text-slate-300">
+                <div class="mv-cresta-watermark">
+                    <svg viewBox="0 0 1440 160" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M0 160 L0 100 L220 50 L400 100 L600 40 L820 100 L1040 55 L1260 105 L1440 70 L1440 160 Z" fill="#FBFAF5"/>
+                    </svg>
+                </div>
+
+                <div class="page-content-shell relative flex flex-col gap-8 py-10">
+                    <div class="flex flex-col gap-8 sm:flex-row sm:items-center sm:justify-between">
+                        <div>
+                            <strong class="font-display text-2xl text-white">Trans Comarapa</strong>
+                            <p class="mt-1 text-sm text-slate-400">Viaja seguro de Santa Cruz a Comarapa.</p>
+                        </div>
+
+                        <div>
+                            <p class="mb-4 text-sm font-semibold text-slate-400">Síguenos en nuestras redes</p>
+                            <div class="flex items-center gap-5">
+                                <a href="#" aria-label="Facebook" class="flex h-14 w-14 items-center justify-center rounded-full bg-white/5 text-slate-300 transition-all duration-300 hover:-translate-y-1 hover:bg-[var(--mv-selva-500)] hover:text-white hover:shadow-lg hover:shadow-[var(--mv-selva-500)]/30">
+                                    <svg class="h-8 w-8" fill="currentColor" viewBox="0 0 24 24"><path d="M14 8h3V5h-3c-2.76 0-5 2.24-5 5v2H6v3h3v6h3v-6h3l1-3h-4v-2c0-1.1.9-2 2-2z"/></svg>
+                                </a>
+                                <a href="#" aria-label="WhatsApp" class="flex h-14 w-14 items-center justify-center rounded-full bg-white/5 text-slate-300 transition-all duration-300 hover:-translate-y-1 hover:bg-[var(--mv-brote-400)] hover:text-[var(--mv-bosque-900)] hover:shadow-lg hover:shadow-[var(--mv-brote-400)]/30">
+                                    <svg class="h-8 w-8" fill="currentColor" viewBox="0 0 24 24"><path d="M20.52 3.48A11.86 11.86 0 0 0 12.04 0C5.48 0 .14 5.34.14 11.9c0 2.1.55 4.15 1.6 5.95L0 24l6.3-1.65a11.9 11.9 0 0 0 5.74 1.47h.01c6.56 0 11.9-5.34 11.9-11.9 0-3.18-1.24-6.17-3.43-8.44ZM12.05 21.8a9.87 9.87 0 0 1-5.03-1.38l-.36-.21-3.74.98 1-3.65-.23-.38a9.88 9.88 0 1 1 8.36 4.64Zm5.42-7.4c-.3-.15-1.77-.87-2.04-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.94 1.17-.17.2-.35.22-.65.07-.3-.15-1.25-.46-2.38-1.47-.88-.78-1.47-1.74-1.64-2.04-.17-.3-.02-.46.13-.61.13-.13.3-.35.45-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.07-.15-.67-1.61-.92-2.2-.24-.58-.49-.5-.67-.51h-.57c-.2 0-.52.07-.79.37-.27.3-1.04 1.02-1.04 2.49s1.07 2.89 1.22 3.09c.15.2 2.1 3.21 5.09 4.5.71.31 1.26.49 1.69.63.71.23 1.35.2 1.86.12.57-.08 1.77-.72 2.02-1.42.25-.7.25-1.3.17-1.42-.07-.12-.27-.2-.57-.35Z"/></svg>
+                                </a>
+                                <a href="#" aria-label="Instagram" class="flex h-14 w-14 items-center justify-center rounded-full bg-white/5 text-slate-300 transition-all duration-300 hover:-translate-y-1 hover:bg-gradient-to-tr hover:from-[var(--mv-selva-500)] hover:to-[var(--mv-brote-400)] hover:text-white hover:shadow-lg">
+                                    <svg class="h-8 w-8" fill="currentColor" viewBox="0 0 24 24"><path d="M7.5 2h9A5.5 5.5 0 0 1 22 7.5v9a5.5 5.5 0 0 1-5.5 5.5h-9A5.5 5.5 0 0 1 2 16.5v-9A5.5 5.5 0 0 1 7.5 2Zm0 2A3.5 3.5 0 0 0 4 7.5v9A3.5 3.5 0 0 0 7.5 20h9a3.5 3.5 0 0 0 3.5-3.5v-9A3.5 3.5 0 0 0 16.5 4h-9ZM12 7a5 5 0 1 1 0 10 5 5 0 0 1 0-10Zm0 2a3 3 0 1 0 0 6 3 3 0 0 0 0-6Zm5.25-3.25a1.25 1.25 0 1 1 0 2.5 1.25 1.25 0 0 1 0-2.5Z"/></svg>
+                                </a>
+                                <a href="#" aria-label="TikTok" class="flex h-14 w-14 items-center justify-center rounded-full bg-white/5 text-slate-300 transition-all duration-300 hover:-translate-y-1 hover:bg-black hover:text-white hover:shadow-lg hover:shadow-black/30">
+                                    <svg class="h-8 w-8" fill="currentColor" viewBox="0 0 24 24"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-3.77V2h-3.45v13.67a2.91 2.91 0 1 1-2-2.75V9.42a6.35 6.35 0 1 0 5.45 6.25V8.72a8.26 8.26 0 0 0 4.83 1.55V6.84a4.79 4.79 0 0 1-1.06-.15Z"/></svg>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </footer>
         </div>
+
+        @if(request()->hasAny(['origen', 'destino', 'fecha']))
+            <script>
+                document.addEventListener('DOMContentLoaded', () => {
+                    document.getElementById('viajes')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                });
+            </script>
+        @endif
     </body>
 </html>

@@ -7,8 +7,10 @@ use App\Http\Controllers\Transaccional\NotificacionController as TransNotificaci
 use App\Models\Boleto;
 use App\Models\Reserva;
 use App\Models\Viaje;
+use App\Services\ViajeAsientosService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class BoletoController extends Controller
@@ -25,49 +27,26 @@ class BoletoController extends Controller
             ->latest()
             ->get();
 
-        return view('cliente.boletos.index', compact('boletos'));
+        $boletosPorViaje = $boletos->groupBy('viaje_id');
+
+        return view('cliente.boletos.index', compact('boletosPorViaje'));
     }
 
-    private function asientosOcupados(int $viajeId): array
+    public function __construct(private ViajeAsientosService $asientosService)
     {
-        return Boleto::where('viaje_id', $viajeId)
-            ->where('estado_base', 1)
-            ->where(function ($query) {
-                $query->where('estado', 'confirmado')
-                      ->orWhere(function ($q) {
-                          $q->where('estado', 'pendiente')
-                            ->where('expira_en', '>', now());
-                      });
-            })
-            ->pluck('numero_asiento')
-            ->toArray();
-    }
-
-    private function generarAsientos(int $capacidad): array
-    {
-        $asientos = [];
-        $letras = ['A', 'B', 'C', 'D'];
-        $filas = ceil($capacidad / 4);
-        $count = 0;
-
-        foreach (range(1, $filas) as $fila) {
-            foreach ($letras as $letra) {
-                if ($count >= $capacidad) break;
-                $asientos[] = $fila . $letra;
-                $count++;
-            }
-        }
-
-        return $asientos;
     }
 
     public function create(Reserva $reserva): View
     {
         $cliente = auth('cliente')->user();
         abort_if($reserva->cliente_id !== $cliente->id || $reserva->estado_base !== 1, 404);
+        abort_if($reserva->boletos()
+            ->where('estado_base', 1)
+            ->where('estado', '!=', 'cancelado')
+            ->exists(), 404);
 
         $viajes = Viaje::with('ruta', 'bus')
-            ->where('estado_base', 1)
+            ->reservables()
             ->get();
 
         return view('cliente.boletos.create', compact('reserva', 'viajes'));
@@ -75,10 +54,10 @@ class BoletoController extends Controller
 
     public function asientosDisponibles(Viaje $viaje)
     {
-        $viaje->load('bus');
+        $viaje = Viaje::reservables()->with('bus', 'ruta')->findOrFail($viaje->id);
 
-        $todos = $this->generarAsientos($viaje->bus->capacidad);
-        $ocupados = $this->asientosOcupados($viaje->id);
+        $todos = $this->asientosService->todos($viaje->id);
+        $ocupados = $this->asientosService->ocupados($viaje->id);
 
         return response()->json([
             'todos' => $todos,
@@ -94,15 +73,43 @@ class BoletoController extends Controller
             'viaje_id' => 'required|exists:viajes,id',
             'numero_asiento' => 'required|array|min:1',
             'numero_asiento.*' => 'required|string',
-            'metodo_pago' => 'required|in:QR,efectivo,tarjeta',
+            'tipo_pasajero' => 'required|array|min:1',
+            'tipo_pasajero.*' => 'required|in:normal,comodidad,mascota',
+            'nombre_pasajero' => 'sometimes|array',
+            'nombre_pasajero.*' => 'nullable|string|max:255',
+            'ci_pasajero' => 'sometimes|array',
+            'ci_pasajero.*' => 'nullable|string|max:50',
+            'telefono_pasajero' => 'sometimes|array',
+            'telefono_pasajero.*' => 'nullable|string|max:50',
+            'metodo_pago' => 'required|in:QR',
         ]);
 
         $cliente = auth('cliente')->user();
-        $reserva = Reserva::where('id', $request->reserva_id)->where('cliente_id', $cliente->id)->firstOrFail();
-        $viaje = Viaje::findOrFail($request->viaje_id);
+        $reserva = Reserva::where('id', $request->reserva_id)
+            ->where('cliente_id', $cliente->id)
+            ->where('estado_base', 1)
+            ->firstOrFail();
 
-        $ocupados = $this->asientosOcupados($viaje->id);
+        if ($reserva->boletos()->where('estado_base', 1)->where('estado', '!=', 'cancelado')->exists()) {
+            return redirect()->route('cliente.reservas.index')
+            ->with('info', 'Esta reserva ya tiene asientos registrados.');
+        }
+
+        $viaje = Viaje::reservables()->with('ruta', 'bus')->findOrFail($request->viaje_id);
+
+        $ocupados = $this->asientosService->ocupados($viaje->id);
         $selected = array_unique($request->numero_asiento);
+
+        $asientosValidos = $this->asientosService->todos($viaje->id);
+        foreach ($selected as $asiento) {
+            if (! in_array($asiento, $asientosValidos, true)) {
+                return back()->withErrors(['numero_asiento' => "El asiento {$asiento} no existe en este bus."])->withInput();
+            }
+        }
+
+        if (count($selected) !== $reserva->cantidad) {
+            return back()->withErrors(['numero_asiento' => 'Debes seleccionar exactamente ' . $reserva->cantidad . ' asiento(s).']);
+        }
 
         foreach ($selected as $asiento) {
             if (in_array($asiento, $ocupados)) {
@@ -114,29 +121,56 @@ class BoletoController extends Controller
         $expiraEn = $request->metodo_pago === 'QR' ? Carbon::now()->addMinutes(15) : null;
         $precioBase = $viaje->ruta->precio_base ?? 0;
 
-        foreach ($selected as $asiento) {
-            try {
+        DB::transaction(function () use ($selected, $request, $reserva, $viaje, $estado, $expiraEn, $precioBase, $cliente) {
+            $this->asientosService->reservar($viaje->id, $selected);
+
+            foreach ($request->numero_asiento as $index => $asiento) {
+                $tipo = $request->tipo_pasajero[$index] ?? 'normal';
+                $precioFinal = $precioBase;
+                if ($tipo === 'comodidad') {
+                    $precioFinal += 10;
+                } elseif ($tipo === 'mascota') {
+                    $precioFinal += 15;
+                }
+
+                $nombre = match ($tipo) {
+                    'comodidad' => 'Comodidad (espacio extra)',
+                    'mascota' => 'Mascota',
+                    default => trim((string) $request->input('nombre_pasajero.' . $index, '')) ?: $cliente->nombre_completo,
+                };
+
+                $ci = $tipo === 'normal'
+                    ? trim((string) $request->input('ci_pasajero.' . $index, '')) ?: $cliente->cedula
+                    : null;
+
+                $telefono = $tipo === 'normal'
+                    ? trim((string) $request->input('telefono_pasajero.' . $index, '')) ?: $cliente->telefono
+                    : null;
+
                 Boleto::create([
                     'reserva_id' => $reserva->id,
                     'viaje_id' => $viaje->id,
                     'numero_asiento' => $asiento,
-                    'nombre_pasajero' => auth('cliente')->user()->nombre_completo,
-                    'ci_pasajero' => auth('cliente')->user()->cedula,
-                    'telefono_pasajero' => auth('cliente')->user()->telefono,
-                    'precio' => $precioBase,
+                    'nombre_pasajero' => $nombre,
+                    'ci_pasajero' => $ci,
+                    'telefono_pasajero' => $telefono,
+                    'espacio_extra' => $tipo === 'comodidad',
+                    'mascota' => $tipo === 'mascota',
+                    'precio' => $precioFinal,
                     'metodo_pago' => $request->metodo_pago,
                     'estado' => $estado,
                     'expira_en' => $expiraEn,
                     'estado_base' => 1,
                 ]);
-            } catch (\Illuminate\Database\UniqueConstraintViolationException $e) {
-                return back()->withErrors(['numero_asiento' => "El asiento {$asiento} ya está ocupado."])->withInput();
             }
-        }
+        });
 
+        $tieneConfirmados = $reserva->boletos()
+            ->where('estado_base', 1)
+            ->where('estado', 'confirmado')
+            ->exists();
         $reserva->update([
-            'total_pagar' => $reserva->boletos()->where('estado_base', 1)->sum('precio'),
-            'estado' => $reserva->boletos()->count() >= $reserva->cantidad ? 'confirmada' : 'pendiente',
+            'estado' => $tieneConfirmados ? 'confirmada' : 'pendiente',
         ]);
 
         TransNotificacionController::crearAutomatica(
@@ -155,7 +189,7 @@ class BoletoController extends Controller
     public function qr(Reserva $reserva): View
     {
         $cliente = auth('cliente')->user();
-        abort_if($reserva->cliente_id !== $cliente->id, 404);
+        abort_if($reserva->cliente_id !== $cliente->id || $reserva->estado_base !== 1, 404);
 
         $boletos = $reserva->boletos()->with('viaje.ruta')->get();
         $qrImage = asset('images/qr-fake.svg');
@@ -171,7 +205,7 @@ class BoletoController extends Controller
     public function pago(Reserva $reserva): View
     {
         $cliente = auth('cliente')->user();
-        abort_if($reserva->cliente_id !== $cliente->id, 404);
+        abort_if($reserva->cliente_id !== $cliente->id || $reserva->estado_base !== 1, 404);
 
         $pendientes = $reserva->boletos()
             ->where('metodo_pago', 'QR')
@@ -185,7 +219,7 @@ class BoletoController extends Controller
     public function confirmarPago(Request $request, Reserva $reserva)
     {
         $cliente = auth('cliente')->user();
-        abort_if($reserva->cliente_id !== $cliente->id, 404);
+        abort_if($reserva->cliente_id !== $cliente->id || $reserva->estado_base !== 1, 404);
 
         $request->validate([
             'comprobante' => 'required|file|mimes:jpg,jpeg,png,pdf|max:5120',

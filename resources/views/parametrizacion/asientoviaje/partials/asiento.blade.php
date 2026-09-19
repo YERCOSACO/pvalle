@@ -10,7 +10,7 @@
     $cursor = $estado === 'disponible' ? 'cursor-pointer hover:scale-110' : 'cursor-not-allowed opacity-90';
 @endphp
 
-<a href="{{ route('transaccional.asientoviaje.edit', $asiento) }}"
+<a href="{{ route('parametrizacion.asientoviaje.edit', $asiento) }}"
    class="block w-12 h-12 {{ $clasesFondo }} {{ $cursor }} rounded-lg shadow-md transition-transform duration-150 flex items-center justify-center">
     <span class="text-white font-bold text-sm">
         {{ $asiento->numero_asiento }}

@@ -5,7 +5,7 @@
 
     <div class="py-8 max-w-7xl mx-auto px-4">
 
-        <form method="GET" action="{{ route('transaccional.asientoviaje.index') }}" class="mb-4 flex gap-2">
+        <form method="GET" action="{{ route('parametrizacion.asientoviaje.index') }}" class="mb-4 flex gap-2">
             <input type="text" name="search" value="{{ request('search') }}"
                    placeholder="Buscar por origen o destino..."
                    class="flex-1 border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
@@ -13,7 +13,7 @@
                 Buscar
             </button>
             @if(request('search'))
-                <a href="{{ route('transaccional.asientoviaje.index') }}"
+                <a href="{{ route('parametrizacion.asientoviaje.index') }}"
                    class="btn-secondary">
                     Limpiar
                 </a>
@@ -28,6 +28,7 @@
                         <th class="px-6 py-3 text-left">Ruta</th>
                         <th class="px-6 py-3 text-left">Fecha</th>
                         <th class="px-6 py-3 text-left">Bus</th>
+                        <th class="px-6 py-3 text-left">Conductores asignados</th>
                         <th class="px-6 py-3 text-left">Capacidad</th>
                         <th class="px-6 py-3 text-left">Acciones</th>
                     </tr>
@@ -39,16 +40,31 @@
                         <td class="px-6 py-3 font-medium">{{ $viaje->ruta->nombre_ruta }}</td>
                         <td class="px-6 py-3 text-gray-500">{{ $viaje->fecha_viaje->format('d/m/Y') }}</td>
                         <td class="px-6 py-3 text-gray-500">{{ $viaje->bus->placa }}</td>
+                        <td class="px-6 py-3 text-gray-600">
+                            @forelse($viaje->asignaciones as $asignacion)
+                                <div>
+                                    <span class="font-medium">{{ $asignacion->conductor?->nombre_completo ?? $asignacion->nombre_ayudante ?? 'Ayudante' }}</span>
+                                    <span class="text-xs text-gray-400">({{ $asignacion->tipo_asignacion }})</span>
+                                </div>
+                            @empty
+                                <span class="text-gray-400">Sin conductores asignados</span>
+                            @endforelse
+                        </td>
                         <td class="px-6 py-3 text-gray-500">{{ $viaje->bus->capacidad }} asientos</td>
                         <td class="px-6 py-3">
-                            <a href="{{ route('transaccional.asientoviaje.show', $viaje) }}"
-                               class="btn-primary btn-sm">
-                                Ver Asientos
-                            </a>
+                            <div class="flex gap-2">
+
+<a href="{{ route('parametrizacion.asientoviaje.imprimir', $viaje) }}"
+   target="_blank"
+   class="btn btn-success btn-sm">
+    Imprimir Reporte
+</a>
+
+                            </div>
                         </td>
                     </tr>
                     @empty
-                    <tr><td colspan="6" class="px-6 py-8 text-center text-gray-400">Sin viajes registrados.</td></tr>
+                    <tr><td colspan="7" class="px-6 py-8 text-center text-gray-400">Sin viajes registrados.</td></tr>
                     @endforelse
                 </tbody>
             </table>

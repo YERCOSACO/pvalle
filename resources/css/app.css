@@ -57,32 +57,50 @@
 
 @layer components {
     .app-shell {
-        background:
-            radial-gradient(circle at top left, rgba(99, 102, 241, 0.14), transparent 28%),
-            radial-gradient(circle at right center, rgba(14, 165, 233, 0.12), transparent 25%),
-            linear-gradient(180deg, rgba(248, 250, 252, 0.98), rgba(241, 245, 249, 0.98));
+        @apply bg-slate-50;
     }
 
     .app-sidebar {
-        @apply h-full rounded-[2rem] border border-white/10 bg-slate-900/95 p-4 text-slate-200;
-        box-shadow: 0 28px 60px -36px rgba(15, 23, 42, 0.8);
+        @apply flex h-full min-h-[calc(100vh-2rem)] flex-col rounded-xl border border-teal-900 p-3 text-slate-200;
+        background: linear-gradient(180deg, #0b2b24 0%, #0f3d31 48%, #082019 100%);
+        box-shadow: 0 16px 34px -26px rgba(8, 51, 41, 0.7);
+    }
+
+    .sidebar-brand {
+        @apply mb-5 flex items-center gap-3 border-b border-white/10 px-2 pb-4;
+    }
+
+    .sidebar-brand-mark {
+        @apply flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-teal-400 text-lg font-bold text-slate-950;
+    }
+
+    .sidebar-group {
+        @apply rounded-lg border border-transparent p-1;
+    }
+
+    .sidebar-group:has(.sidebar-link-active) {
+        @apply border-teal-400/20 bg-white/[0.06];
     }
 
     .sidebar-group-trigger {
-        @apply flex w-full items-center justify-between rounded-2xl px-3 py-3 text-left text-sm font-medium text-slate-100;
-        @apply hover:bg-white/10;
+        @apply flex w-full items-center justify-between rounded-lg px-2 py-2.5 text-left text-xs font-bold uppercase tracking-[0.12em] text-slate-300;
+        @apply hover:bg-white/10 hover:text-white;
+    }
+
+    .sidebar-group-number {
+        @apply flex h-6 w-6 items-center justify-center rounded-md bg-white/10 text-[0.65rem] font-bold tracking-normal text-teal-100;
     }
 
     .sidebar-group-panel {
-        @apply mt-2 space-y-1 px-2 pb-2;
+        @apply mt-1 space-y-1 px-1 pb-1;
     }
 
     .sidebar-link {
-        @apply block rounded-2xl px-3 py-2.5 text-sm text-slate-300 hover:bg-white/10 hover:text-white;
+        @apply relative block rounded-lg px-3 py-2.5 text-sm text-slate-300 hover:bg-white/10 hover:text-white;
     }
 
     .sidebar-link-active {
-        @apply bg-white text-slate-900 shadow-sm;
+        @apply bg-teal-400 font-semibold text-slate-950 shadow-md shadow-slate-950/20;
     }
 
     .page-content-shell {
@@ -90,7 +108,81 @@
     }
 
     .page-header-shell {
-        @apply border-b border-white/60 bg-white/70;
+        @apply border-b border-slate-200 bg-white;
+    }
+
+    .dashboard-hero {
+        @apply overflow-hidden rounded-2xl border border-teal-700 px-6 py-8 text-white sm:px-9;
+        background: linear-gradient(115deg, #0f4238 0%, #0f8a6b 55%, #14a68f 100%);
+        box-shadow: 0 20px 42px -28px rgba(8, 102, 79, 0.65);
+    }
+
+    .dashboard-module-card {
+        @apply rounded-2xl border border-slate-200 bg-white p-5;
+        box-shadow: 0 14px 34px -28px rgba(15, 23, 42, 0.38);
+    }
+
+    .profile-identity {
+        @apply flex flex-col gap-4 rounded-2xl border border-slate-200 bg-white p-5 sm:flex-row sm:items-center sm:p-6;
+        box-shadow: 0 14px 34px -28px rgba(15, 23, 42, 0.38);
+    }
+
+    .profile-avatar {
+        @apply flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-teal-600 text-2xl font-extrabold text-white;
+    }
+
+    .profile-role {
+        @apply rounded-full bg-teal-50 px-3 py-1.5 text-xs font-bold text-teal-700 sm:ml-auto;
+    }
+
+    .profile-card {
+        @apply rounded-2xl border border-slate-200 bg-white p-5 sm:p-7;
+        box-shadow: 0 14px 34px -28px rgba(15, 23, 42, 0.38);
+    }
+
+    .profile-danger-card {
+        @apply rounded-2xl border border-rose-200 bg-rose-50/70 p-5 sm:p-7;
+    }
+
+    .quick-action {
+        @apply flex items-center gap-3 rounded-xl border border-slate-200 bg-white p-4 text-slate-800;
+        box-shadow: 0 10px 24px -24px rgba(15, 23, 42, 0.45);
+    }
+
+    .quick-action:hover {
+        @apply -translate-y-0.5 border-teal-300 bg-teal-50;
+    }
+
+    .quick-action strong {
+        @apply block text-base font-extrabold;
+    }
+
+    .quick-action small {
+        @apply mt-0.5 block text-xs text-slate-500;
+    }
+
+    .quick-action-mark {
+        @apply flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-teal-50 text-[0.65rem] font-bold text-teal-700;
+    }
+
+    .quick-action-arrow {
+        @apply ml-auto text-lg text-slate-300;
+    }
+
+    .module-link {
+        @apply flex items-center justify-between rounded-xl border border-slate-100 px-4 py-3.5 text-base font-bold text-slate-700;
+    }
+
+    .module-link:hover {
+        @apply border-teal-200 bg-teal-50 text-teal-800;
+    }
+
+    .module-link-dot {
+        @apply h-2 w-2 rounded-full bg-slate-300;
+    }
+
+    .module-link:hover .module-link-dot {
+        @apply bg-teal-500;
     }
 
     .page-shell {
@@ -130,7 +222,7 @@
     }
 
     .table-actions {
-        @apply flex flex-wrap gap-2;
+        @apply flex gap-2;
     }
 
     .alert-success {
@@ -166,6 +258,113 @@
         @apply flex flex-col-reverse gap-3 border-t border-slate-100 pt-6 sm:flex-row sm:items-center sm:justify-end;
     }
 
+    .landing-page {
+        --landing-ink: #102a43;
+        --landing-teal: #0f766e;
+        --landing-coral: #e76f51;
+        --landing-cream: #f8f5ef;
+        background: var(--landing-cream);
+        color: var(--landing-ink);
+        font-family: 'Plus Jakarta Sans', 'Figtree', sans-serif;
+    }
+
+    .landing-page .landing-header {
+        background: rgba(248, 245, 239, 0.9);
+        border-color: rgba(16, 42, 67, 0.12);
+    }
+
+    .landing-page .landing-mark {
+        background: linear-gradient(135deg, var(--landing-coral), #f3a261);
+        box-shadow: 0 12px 24px rgba(231, 111, 81, 0.25);
+    }
+
+    .landing-page .landing-hero {
+        min-height: 680px;
+        background: linear-gradient(112deg, rgba(8, 34, 49, 0.98) 8%, rgba(13, 67, 77, 0.86) 50%, rgba(15, 118, 110, 0.48)), #082231;
+    }
+
+    .landing-page .landing-hero::after {
+        position: absolute;
+        inset: auto 0 0;
+        height: 18%;
+        background: linear-gradient(180deg, transparent, rgba(8, 34, 49, 0.65));
+        content: '';
+        pointer-events: none;
+    }
+
+    .landing-page .landing-search {
+        border: 1px solid rgba(255, 255, 255, 0.55);
+        border-radius: 1rem;
+        background: rgba(255, 252, 247, 0.97);
+        box-shadow: 0 26px 70px rgba(3, 25, 37, 0.3);
+    }
+
+    .landing-page .landing-search input {
+        border-radius: 0.65rem;
+        background: #fff;
+        box-shadow: inset 0 0 0 1px rgba(16, 42, 67, 0.08);
+    }
+
+    .landing-page .landing-accent { color: #f5a28e; }
+
+    .landing-page .landing-primary {
+        background: var(--landing-coral);
+        box-shadow: 0 12px 24px rgba(231, 111, 81, 0.22);
+    }
+
+    .landing-page .landing-primary:hover { background: #d95f43; }
+
+    .landing-page .landing-section { background: var(--landing-cream); }
+
+    .landing-page #viajes article,
+    .landing-page #como-funciona > div > div:last-child > div {
+        border-color: rgba(16, 42, 67, 0.11);
+        border-radius: 1rem;
+        background: rgba(255, 255, 255, 0.72);
+        box-shadow: 0 18px 34px -28px rgba(16, 42, 67, 0.55);
+    }
+
+    .landing-page #viajes article:hover,
+    .landing-page #como-funciona > div > div:last-child > div:hover {
+        border-color: rgba(15, 118, 110, 0.35);
+        box-shadow: 0 22px 38px -26px rgba(15, 118, 110, 0.42);
+    }
+
+    .landing-page .landing-section-alt {
+        background: #fffdf9;
+        border-color: rgba(16, 42, 67, 0.1);
+    }
+
+    .landing-page #destinos a {
+        border-radius: 1rem;
+        box-shadow: inset 0 -90px 70px rgba(8, 34, 49, 0.72);
+    }
+
+    .landing-page .landing-trip-card,
+    .landing-page .landing-step-card {
+        border-color: rgba(16, 42, 67, 0.11);
+        border-radius: 1rem;
+        background: rgba(255, 255, 255, 0.72);
+        box-shadow: 0 18px 34px -28px rgba(16, 42, 67, 0.55);
+    }
+
+    .landing-page .landing-trip-card:hover,
+    .landing-page .landing-step-card:hover {
+        border-color: rgba(15, 118, 110, 0.35);
+        box-shadow: 0 22px 38px -26px rgba(15, 118, 110, 0.42);
+    }
+
+    .landing-page .landing-destination {
+        border-radius: 1rem;
+        box-shadow: inset 0 -90px 70px rgba(8, 34, 49, 0.72);
+    }
+
+    .landing-page footer { background: #082231; }
+
+    @media (max-width: 640px) {
+        .landing-page .landing-hero { min-height: 0; }
+    }
+
     .btn,
     .btn-primary,
     .btn-secondary,
@@ -190,9 +389,9 @@
         @apply px-3 py-2 text-xs;
     }
 
-    .btn-primary {
-        @apply bg-slate-900 text-white hover:bg-slate-800 focus:ring-slate-200;
-    }
+.btn-primary {
+    @apply bg-teal-600 text-white hover:bg-teal-500 focus:ring-teal-100;
+}
 
     .btn-secondary {
         @apply focus:ring-slate-100;

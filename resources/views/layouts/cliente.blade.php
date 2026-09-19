@@ -13,7 +13,7 @@
                 <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                     <div class="flex min-h-20 items-center justify-between gap-4">
                         <div class="min-w-0">
-                            <a href="{{ route('cliente.dashboard') }}" class="block truncate text-lg font-bold tracking-tight text-slate-950">PValle <span class="font-medium text-sky-600">Cliente</span></a>
+                            <x-brand-logo href="{{ route('cliente.dashboard') }}" size="header" />
                             <p class="hidden text-xs text-slate-500 sm:block">Viaja con información clara y seguimiento en un solo lugar.</p>
                         </div>
 

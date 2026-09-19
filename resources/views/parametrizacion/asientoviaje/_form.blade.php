@@ -24,7 +24,7 @@
 
     <div class="flex items-center gap-4 pt-2">
         <x-primary-button>Actualizar</x-primary-button>
-        <a href="{{ route('transaccional.asientoviaje.show', $asientoviaje->viaje_id) }}"
+        <a href="{{ route('parametrizacion.asientoviaje.show', $asientoviaje->viaje_id) }}"
            class="form-cancel">Cancelar</a>
     </div>
 </div>

@@ -9,6 +9,8 @@ use App\Models\TipoEncomienda;
 use App\Models\Viaje;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 
 class EncomiendaController extends Controller
 {
@@ -56,36 +58,39 @@ class EncomiendaController extends Controller
         'cantidad'               => 'required|integer|min:1',
     ]);
 
-    $tipo = TipoEncomienda::find($request->tipo_encomienda_id);
-    $total = $tipo->precio * $request->cantidad;
+    DB::transaction(function () use ($request) {
+        $tipo = TipoEncomienda::find($request->tipo_encomienda_id);
+        $total = $tipo->precio * $request->cantidad;
 
-    $encomienda = Encomienda::create([
-        'cliente_id'             => $request->cliente_id,
-        'remitente_nombre'       => $request->remitente_nombre,
-        'remitente_ci'           => $request->remitente_ci,
-        'remitente_telefono'     => $request->remitente_telefono,
-        'destinatario_nombre'    => $request->destinatario_nombre,
-        'destinatario_ci'        => $request->destinatario_ci,
-        'destinatario_telefono'  => $request->destinatario_telefono,
-        'viaje_id'               => $request->viaje_id,
-        'tipo_encomienda_id'     => $request->tipo_encomienda_id,
-        'cantidad'               => $request->cantidad,
-        'total_pagar'            => $total,
-    ]);
+        $encomienda = Encomienda::create([
+            'cliente_id'             => $request->cliente_id,
+            'remitente_nombre'       => $request->remitente_nombre,
+            'remitente_ci'           => $request->remitente_ci,
+            'remitente_telefono'     => $request->remitente_telefono,
+            'destinatario_nombre'    => $request->destinatario_nombre,
+            'destinatario_ci'        => $request->destinatario_ci,
+            'destinatario_telefono'  => $request->destinatario_telefono,
+            'viaje_id'               => $request->viaje_id,
+            'tipo_encomienda_id'     => $request->tipo_encomienda_id,
+            'cantidad'               => $request->cantidad,
+            'total_pagar'            => $total,
+            'usuario_id'             => Auth::id(),
+        ]);
 
-    if ($encomienda->cliente_id) {
-        $encomienda->load('viaje');
-        $fechaViaje = optional($encomienda->viaje)->fecha_viaje?->format('d/m/Y');
+        if ($encomienda->cliente_id) {
+            $encomienda->load('viaje');
+            $fechaViaje = optional($encomienda->viaje)->fecha_viaje?->format('d/m/Y');
 
-        \App\Http\Controllers\Transaccional\NotificacionController::crearAutomatica(
-            $encomienda->cliente_id,
-            'Tu encomienda fue recibida',
-            'Tu paquete para ' . $encomienda->destinatario_nombre . ' fue recibido y viajará el ' . ($fechaViaje ?? 'próxima fecha') . '.',
-            $encomienda,
-            'info',
-            'normal'
-        );
-    }
+            \App\Http\Controllers\Transaccional\NotificacionController::crearAutomatica(
+                $encomienda->cliente_id,
+                'Tu encomienda fue recibida',
+                'Tu paquete para ' . $encomienda->destinatario_nombre . ' fue recibido y viajará el ' . ($fechaViaje ?? 'próxima fecha') . '.',
+                $encomienda,
+                'info',
+                'normal'
+            );
+        }
+    });
 
     return redirect()->route('transaccional.encomiendas.index')
                      ->with('success', 'Encomienda registrada correctamente.');
@@ -120,37 +125,39 @@ class EncomiendaController extends Controller
             'estado'                 => 'required|in:recibido,en transito,entregado,cancelado',
         ]);
 
-        $estadoAnterior = $encomienda->estado;
-        $tipo = TipoEncomienda::find($request->tipo_encomienda_id);
-        $total = $tipo->precio * $request->cantidad;
+        DB::transaction(function () use ($request, $encomienda) {
+            $estadoAnterior = $encomienda->estado;
+            $tipo = TipoEncomienda::find($request->tipo_encomienda_id);
+            $total = $tipo->precio * $request->cantidad;
 
-        $encomienda->update([
-            'cliente_id'             => $request->cliente_id,
-            'remitente_nombre'       => $request->remitente_nombre,
-            'remitente_ci'           => $request->remitente_ci,
-            'remitente_telefono'     => $request->remitente_telefono,
-            'destinatario_nombre'    => $request->destinatario_nombre,
-            'destinatario_ci'        => $request->destinatario_ci,
-            'destinatario_telefono'  => $request->destinatario_telefono,
-            'viaje_id'               => $request->viaje_id,
-            'tipo_encomienda_id'     => $request->tipo_encomienda_id,
-            'cantidad'               => $request->cantidad,
-            'total_pagar'            => $total,
-            'estado'                 => $request->estado,
-        ]);
+            $encomienda->update([
+                'cliente_id'             => $request->cliente_id,
+                'remitente_nombre'       => $request->remitente_nombre,
+                'remitente_ci'           => $request->remitente_ci,
+                'remitente_telefono'     => $request->remitente_telefono,
+                'destinatario_nombre'    => $request->destinatario_nombre,
+                'destinatario_ci'        => $request->destinatario_ci,
+                'destinatario_telefono'  => $request->destinatario_telefono,
+                'viaje_id'               => $request->viaje_id,
+                'tipo_encomienda_id'     => $request->tipo_encomienda_id,
+                'cantidad'               => $request->cantidad,
+                'total_pagar'            => $total,
+                'estado'                 => $request->estado,
+            ]);
 
-        if ($encomienda->cliente_id && $estadoAnterior !== $encomienda->estado) {
-            $encomienda->load('viaje.ruta');
-            $fechaViaje = Carbon::parse($encomienda->viaje->fecha_viaje)->format('d/m/Y');
-            \App\Http\Controllers\Transaccional\NotificacionController::crearAutomatica(
-                $encomienda->cliente_id,
-                'Cambio de estado de encomienda',
-                "El estado de tu encomienda para {$encomienda->destinatario_nombre} cambió a {$encomienda->estado}. Viaje: {$encomienda->viaje->ruta->nombre_ruta} el {$fechaViaje} a las {$encomienda->viaje->hora_salida}.",
-                $encomienda,
-                'info',
-                'normal'
-            );
-        }
+            if ($encomienda->cliente_id && $estadoAnterior !== $encomienda->estado) {
+                $encomienda->load('viaje.ruta');
+                $fechaViaje = Carbon::parse($encomienda->viaje->fecha_viaje)->format('d/m/Y');
+                \App\Http\Controllers\Transaccional\NotificacionController::crearAutomatica(
+                    $encomienda->cliente_id,
+                    'Cambio de estado de encomienda',
+                    "El estado de tu encomienda para {$encomienda->destinatario_nombre} cambió a {$encomienda->estado}. Viaje: {$encomienda->viaje->ruta->nombre_ruta} el {$fechaViaje} a las {$encomienda->viaje->hora_salida}.",
+                    $encomienda,
+                    'info',
+                    'normal'
+                );
+            }
+        });
 
         return redirect()->route('transaccional.encomiendas.index')
                          ->with('success', 'Encomienda actualizada correctamente.');
@@ -160,7 +167,7 @@ class EncomiendaController extends Controller
     {
         $this->authorize('encomiendas.ver');
 
-        $encomienda->load(['viaje.ruta', 'viaje.bus', 'cliente', 'tipoEncomienda']);
+        $encomienda->load(['viaje.ruta', 'viaje.bus', 'cliente', 'tipoEncomienda', 'usuario']);
 
         return view('transaccional.encomiendas.imprimir', compact('encomienda'));
     }
@@ -169,7 +176,9 @@ class EncomiendaController extends Controller
     {
         $this->authorize('encomiendas.eliminar');
 
-        $encomienda->update(['estado_base' => 0]);
+        DB::transaction(function () use ($encomienda) {
+            $encomienda->update(['estado_base' => 0]);
+        });
 
         return redirect()->route('transaccional.encomiendas.index')
                          ->with('success', 'Encomienda eliminada correctamente.');

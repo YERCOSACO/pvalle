@@ -41,7 +41,8 @@ class UsuarioController extends Controller
         $request->validate([
             'name'     => 'required|string|max:255',
             'email'    => 'required|email|unique:users',
-            'password' => 'required|min:6|confirmed',
+            //6
+            'password' => 'required|min:12|confirmed',
         ]);
 
         User::create([
@@ -76,7 +77,7 @@ class UsuarioController extends Controller
         ]);
 
         if ($request->filled('password')) {
-            $request->validate(['password' => 'min:6|confirmed']);
+            $request->validate(['password' => 'min:12|confirmed']);
             $usuario->update(['password' => Hash::make($request->password)]);
         }
 

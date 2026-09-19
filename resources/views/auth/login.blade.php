@@ -3,11 +3,12 @@
     <!-- Estado de sesión -->
     <x-auth-session-status class="mb-4" :status="session('status')" />
 
-    <div class="text-center mb-6">
-        <h2 class="text-2xl font-bold text-gray-800">
+    <div class="mb-6 text-center">
+        <p class="font-eyebrow text-xs font-bold uppercase tracking-[0.2em] text-[var(--mv-selva-600)]">Bienvenido de vuelta</p>
+        <h2 class="font-display mt-1 text-2xl font-semibold text-[var(--mv-tinta-900)]">
             Iniciar sesión
         </h2>
-        <p class="mt-2 text-sm text-gray-600">
+        <p class="mt-2 text-sm text-[var(--mv-tinta-900)]/60">
             Ingresa a tu cuenta para continuar
         </p>
     </div>
@@ -19,17 +20,17 @@
         <div>
             <x-input-label for="email" value="Correo electrónico" />
 
-            <x-text-input
+            <input
                 id="email"
-                class="block mt-1 w-full"
                 type="email"
                 name="email"
-                :value="old('email')"
+                value=""
                 required
                 autofocus
                 autocomplete="username"
                 placeholder="ejemplo@correo.com"
-            />
+                class="mv-input mt-2 block w-full rounded-lg px-3 py-2.5 text-sm"
+            >
 
             <x-input-error
                 :messages="$errors->get('email')"
@@ -41,15 +42,15 @@
         <div class="mt-4">
             <x-input-label for="password" value="Contraseña" />
 
-            <x-text-input
+            <input
                 id="password"
-                class="block mt-1 w-full"
                 type="password"
                 name="password"
                 required
                 autocomplete="current-password"
                 placeholder="Ingresa tu contraseña"
-            />
+                class="mv-input mt-2 block w-full rounded-lg px-3 py-2.5 text-sm"
+            >
 
             <x-input-error
                 :messages="$errors->get('password')"
@@ -58,48 +59,48 @@
         </div>
 
         <!-- Recordarme -->
-        <div class="block mt-4">
+        <div class="mt-4 block">
             <label for="remember_me" class="inline-flex items-center">
                 <input
                     id="remember_me"
                     type="checkbox"
-                    class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500"
+                    class="rounded border-[var(--mv-tinta-900)]/20 text-[var(--mv-selva-600)] shadow-sm focus:ring-[var(--mv-selva-500)]"
                     name="remember"
                 >
 
-                <span class="ms-2 text-sm text-gray-600">
+                <span class="ms-2 text-sm text-[var(--mv-tinta-900)]/70">
                     Recordarme
                 </span>
             </label>
         </div>
 
         <!-- Acciones -->
-        <div class="flex items-center justify-between mt-6">
+        <div class="mt-6 flex items-center justify-between">
 
             @if (Route::has('password.request'))
                 <a
-                    class="text-sm text-indigo-600 hover:text-indigo-900 underline"
+                    class="text-sm font-semibold text-[var(--mv-selva-600)] underline hover:text-[var(--mv-bosque-900)]"
                     href="{{ route('password.request') }}"
                 >
                     ¿Olvidaste tu contraseña?
                 </a>
             @endif
 
-            <x-primary-button class="ms-3">
+            <button type="submit" class="mv-btn-primary ms-3 rounded-xl px-5 py-2.5 text-sm font-bold transition">
                 Iniciar sesión
-            </x-primary-button>
+            </button>
 
         </div>
 
         <!-- Registro de cliente -->
-        <div class="mt-6 pt-6 border-t border-gray-200 text-center">
-            <p class="text-sm text-gray-600">
+        <div class="mt-6 border-t border-[var(--mv-tinta-900)]/10 pt-6 text-center">
+            <p class="text-sm text-[var(--mv-tinta-900)]/60">
                 ¿Aún no tienes una cuenta?
             </p>
 
             <a
                 href="{{ route('register') }}"
-                class="mt-2 inline-block font-medium text-indigo-600 hover:text-indigo-900"
+                class="mt-2 inline-block font-semibold text-[var(--mv-selva-600)] hover:text-[var(--mv-bosque-900)]"
             >
                 Regístrate como cliente
             </a>

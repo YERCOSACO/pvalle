@@ -44,8 +44,9 @@ class ClienteController extends Controller
             'apellido'         => 'required|string|max:255',
             'cedula'           => 'required|string|unique:clientes,cedula',
             'email'            => 'required|email|unique:clientes,email',
-            'contrasena'       => 'required|min:6|confirmed',
+            'contrasena'       => 'required|min:12|confirmed',
             'telefono'         => 'nullable|string|max:20',
+            //6
             'direccion'        => 'nullable|string|max:255',
             'fecha_nacimiento' => 'nullable|date',
         ]);
@@ -93,6 +94,7 @@ class ClienteController extends Controller
 
         if ($request->filled('contrasena')) {
             $request->validate(['contrasena' => 'min:6|confirmed']);
+            //1///////////////////////////////////////
             $cliente->update(['contrasena' => Hash::make($request->contrasena)]);
         }
 

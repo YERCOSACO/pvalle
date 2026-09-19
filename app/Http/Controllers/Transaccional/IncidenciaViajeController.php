@@ -9,6 +9,7 @@ use App\Models\Notificacion;
 use App\Models\Viaje;
 use App\Models\TipoIncidencia;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class IncidenciaViajeController extends Controller
 {
@@ -51,11 +52,13 @@ class IncidenciaViajeController extends Controller
             'descripcion_detalle' => 'nullable|string',
         ]);
 
-        $incidencia = IncidenciaViaje::create($request->only(
-            'viaje_id', 'tipo_incidencia_id', 'fecha_inicio', 'fecha_fin', 'descripcion_detalle'
-        ));
+        DB::transaction(function () use ($request) {
+            $incidencia = IncidenciaViaje::create($request->only(
+                'viaje_id', 'tipo_incidencia_id', 'fecha_inicio', 'fecha_fin', 'descripcion_detalle'
+            ));
 
-        $this->actualizarEstadoViajeYNotificar($incidencia);
+            $this->actualizarEstadoViajeYNotificar($incidencia);
+        });
 
         return redirect()->route('transaccional.incidenciaviaje.index')
                          ->with('success', 'Incidencia registrada correctamente.');
@@ -83,11 +86,13 @@ class IncidenciaViajeController extends Controller
             'descripcion_detalle' => 'nullable|string',
         ]);
 
-        $incidenciaviaje->update($request->only(
-            'viaje_id', 'tipo_incidencia_id', 'fecha_inicio', 'fecha_fin', 'descripcion_detalle'
-        ));
+        DB::transaction(function () use ($request, $incidenciaviaje) {
+            $incidenciaviaje->update($request->only(
+                'viaje_id', 'tipo_incidencia_id', 'fecha_inicio', 'fecha_fin', 'descripcion_detalle'
+            ));
 
-        $this->actualizarEstadoViajeYNotificar($incidenciaviaje);
+            $this->actualizarEstadoViajeYNotificar($incidenciaviaje);
+        });
 
         return redirect()->route('transaccional.incidenciaviaje.index')
                          ->with('success', 'Incidencia actualizada correctamente.');
@@ -97,7 +102,9 @@ class IncidenciaViajeController extends Controller
     {
         $this->authorize('incidenciaviaje.eliminar');
 
-        $incidenciaviaje->update(['estado_base' => 0]);
+        DB::transaction(function () use ($incidenciaviaje) {
+            $incidenciaviaje->update(['estado_base' => 0]);
+        });
 
         return redirect()->route('transaccional.incidenciaviaje.index')
                          ->with('success', 'Incidencia eliminada correctamente.');

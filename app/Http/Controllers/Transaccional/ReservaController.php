@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Reserva;
 use App\Models\Cliente;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class ReservaController extends Controller
 {
@@ -46,13 +47,14 @@ class ReservaController extends Controller
             'cantidad'   => 'required|integer|min:1',
         ]);
 
-        Reserva::create([
-            'cliente_id'    => $request->cliente_id,
-            'fecha_reserva' => now(),
-            'cantidad'      => $request->cantidad,
-            'total_pagar'   => 0,
-            'estado'        => 'pendiente',
-        ]);
+        DB::transaction(function () use ($request) {
+            Reserva::create([
+                'cliente_id'    => $request->cliente_id,
+                'fecha_reserva' => now(),
+                'cantidad'      => $request->cantidad,
+                'estado'        => 'pendiente',
+            ]);
+        });
 
         return redirect()->route('transaccional.reservas.index')
                          ->with('success', 'Reserva creada correctamente. Ahora agrega los boletos desde el módulo de Boletos.');
@@ -77,7 +79,9 @@ class ReservaController extends Controller
             'estado'     => 'required|in:pendiente,confirmada,cancelada',
         ]);
 
-        $reserva->update($request->only('cliente_id', 'cantidad', 'estado'));
+        DB::transaction(function () use ($reserva, $request) {
+            $reserva->update($request->only('cliente_id', 'cantidad', 'estado'));
+        });
 
         return redirect()->route('transaccional.reservas.index')
                          ->with('success', 'Reserva actualizada correctamente.');
@@ -87,7 +91,9 @@ class ReservaController extends Controller
     {
         $this->authorize('reservas.eliminar');
 
-        $reserva->update(['estado_base' => 0]);
+        DB::transaction(function () use ($reserva) {
+            $reserva->update(['estado_base' => 0]);
+        });
 
         return redirect()->route('transaccional.reservas.index')
                          ->with('success', 'Reserva eliminada correctamente.');

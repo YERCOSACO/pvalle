@@ -59,7 +59,7 @@
                             {{ $relevo->conductor->nombre_completo ?? '—' }}
                         </td>
                         <td class="px-6 py-3 text-gray-600">
-                            {{ $ayudante->conductor->nombre_completo ?? '— Sin ayudante' }}
+                            {{ $ayudante?->conductor?->nombre_completo ?? $ayudante?->nombre_ayudante ?? '— Sin ayudante' }}
                         </td>
                         <td class="px-6 py-3 flex gap-2">
                             <a href="{{ route('transaccional.asignacionconductor.edit', $viaje) }}"
@@ -70,7 +70,7 @@
                                   method="POST" onsubmit="return confirm('¿Eliminar toda la asignación de este viaje?')">
                                 @csrf @method('DELETE')
                                 <button class="btn-danger btn-sm">
-                                    Eliminar Asignación
+                                Eliminar Asignación
                                 </button>
                             </form>
                         </td>

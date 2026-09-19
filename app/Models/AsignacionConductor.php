@@ -8,7 +8,7 @@ class AsignacionConductor extends Model
 {
     protected $table = 'asignacion_conductores';
 
-    protected $fillable = ['viaje_id', 'conductor_id', 'tipo_asignacion'];
+    protected $fillable = ['viaje_id', 'conductor_id', 'tipo_asignacion', 'nombre_ayudante'];
 
     public function viaje()
     {

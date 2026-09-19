@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Carbon;
 
 class Viaje extends Model
 {
@@ -32,6 +33,25 @@ class Viaje extends Model
     {
         return $query->where('estado_base', 1);
     }
+
+    public function scopeReservables(Builder $query): Builder
+    {
+        return $query->activos()
+            ->where('estado', 'programado')
+            ->whereDate('fecha_viaje', '>=', Carbon::today())
+            ->whereHas('asientos', function (Builder $asientos) {
+                $asientos->activos()->where('estado', 'disponible');
+            });
+    }
+
+    public function scopeConConductorAsignado(Builder $query): Builder
+    {
+        return $query->whereHas('asignaciones', function (Builder $asignaciones) {
+            $asignaciones->where('tipo_asignacion', 'Principal')
+                         ->where('estado_base', 1);
+        });
+    }
+
     public function asignaciones()
     {
     return $this->hasMany(AsignacionConductor::class);

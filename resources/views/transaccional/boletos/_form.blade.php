@@ -54,6 +54,15 @@
         const r = [];
         for (let i = 0; i < arr.length; i += size) r.push(arr.slice(i, i + size));
         return r;
+    },
+
+    filasAsientos() {
+        if (this.todosAsientos.length <= 5) return [this.todosAsientos];
+        const filas = [this.todosAsientos.slice(0, 2)];
+        const centro = this.todosAsientos.slice(2, -5);
+        for (let i = 0; i < centro.length; i += 4) filas.push(centro.slice(i, i + 4));
+        filas.push(this.todosAsientos.slice(-5));
+        return filas;
     }
 }">
 
@@ -131,11 +140,10 @@
                 </div>
 
                 <div class="space-y-2">
-                    <template x-for="(fila, fi) in chunk(todosAsientos, 4)" :key="fi">
-                        <div class="flex justify-center items-center gap-4">
-                            <div class="flex gap-2">
-                                <template x-for="asiento in fila.slice(0,2)" :key="asiento">
-                                    <button type="button"
+                    <template x-for="(fila, fi) in filasAsientos()" :key="fi">
+                        <div class="grid grid-cols-5 gap-x-3 items-center w-fit mx-auto">
+                            <template x-for="(asiento, ai) in fila" :key="asiento">
+                                    <button type="button" :style="'grid-column: ' + ((fi === 0 || fi === filasAsientos().length - 1) ? ai + 1 : [1, 2, 4, 5][ai])"
                                         @click="toggleAsiento(asiento)"
                                         :disabled="estaOcupado(asiento)"
                                         :class="{
@@ -146,24 +154,7 @@
                                         class="w-11 h-11 rounded-lg border-b-4 text-white text-xs font-bold transition-all duration-150">
                                         <span x-text="asiento"></span>
                                     </button>
-                                </template>
-                            </div>
-                            <div class="w-4"></div>
-                            <div class="flex gap-2">
-                                <template x-for="asiento in fila.slice(2,4)" :key="asiento">
-                                    <button type="button"
-                                        @click="toggleAsiento(asiento)"
-                                        :disabled="estaOcupado(asiento)"
-                                        :class="{
-                                            'bg-indigo-600 border-indigo-800 scale-110 ring-2 ring-indigo-300': estaSeleccionado(asiento),
-                                            'bg-emerald-500 border-emerald-700 hover:scale-110 cursor-pointer': !estaOcupado(asiento) && !estaSeleccionado(asiento),
-                                            'bg-rose-500 border-rose-700 cursor-not-allowed opacity-70': estaOcupado(asiento)
-                                        }"
-                                        class="w-11 h-11 rounded-lg border-b-4 text-white text-xs font-bold transition-all duration-150">
-                                        <span x-text="asiento"></span>
-                                    </button>
-                                </template>
-                            </div>
+                            </template>
                         </div>
                     </template>
                 </div>

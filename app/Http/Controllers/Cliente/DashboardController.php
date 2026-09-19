@@ -12,11 +12,11 @@ class DashboardController extends Controller
     public function index(Request $request): View
     {
         $clienteId = auth('cliente')->id();
-        $cliente = Cliente::findOrFail($clienteId);
+        $cliente = Cliente::where('estado_base', 1)->findOrFail($clienteId);
 
-        $reservasCount = $cliente->reservas()->count();
-        $boletosCount = $cliente->boletos()->count();
-        $encomiendasCount = $cliente->encomiendas()->count();
+        $reservasCount = $cliente->reservas()->where('reservas.estado_base', 1)->count();
+        $boletosCount = $cliente->boletos()->where('boletos.estado_base', 1)->count();
+        $encomiendasCount = $cliente->encomiendas()->where('encomiendas.estado_base', 1)->count();
         $notificaciones = $cliente->notificaciones()->where('estado_base', 1)
                                     ->latest('fecha_envio')
                                     ->take(5)

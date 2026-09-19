@@ -22,16 +22,50 @@ use App\Http\Controllers\Transaccional\AsignacionConductorController;
 use App\Http\Controllers\Transaccional\IncidenciaViajeController;
 use App\Http\Controllers\Transaccional\EncomiendaController;
 use App\Http\Controllers\Transaccional\NotificacionController;
-use App\Http\Controllers\Transaccional\AsientoViajeController;
+use App\Http\Controllers\Parametrizacion\AsientoViajeController;
 use App\Http\Controllers\Transaccional\ReservaController;
 use App\Http\Controllers\Transaccional\BoletoController;
+use App\Models\Viaje;
 
 Route::get('/', function () {
-    return view('welcome');
+     $viajesProximos = Viaje::with('ruta')
+          ->reservables()
+          ->withCount(['asientos as asientos_disponibles' => function ($query) {
+               $query->activos()->where('estado', 'disponible');
+          }])
+          ->orderBy('fecha_viaje')
+          ->orderBy('hora_salida')
+          ->take(6)
+          ->get();
+
+     return view('welcome', compact('viajesProximos'));
 });
 
+Route::get('/buscar-viajes', function () {
+     $cantidad = max(1, (int) request('pasajeros', 1));
+
+     $viajesProximos = Viaje::with('ruta')
+          ->reservables()
+          ->withCount(['asientos as asientos_disponibles' => function ($query) {
+               $query->activos()->where('estado', 'disponible');
+          }])
+          ->when(request('origen'), function ($query, $origen) {
+               $query->whereHas('ruta', fn ($ruta) => $ruta->where('origen', 'like', '%' . trim($origen) . '%'));
+          })
+          ->when(request('destino'), function ($query, $destino) {
+               $query->whereHas('ruta', fn ($ruta) => $ruta->where('destino', 'like', '%' . trim($destino) . '%'));
+          })
+          ->when(request('fecha'), fn ($query, $fecha) => $query->whereDate('fecha_viaje', $fecha))
+          ->having('asientos_disponibles', '>=', $cantidad)
+          ->orderBy('fecha_viaje')
+          ->orderBy('hora_salida')
+          ->get();
+
+     return view('welcome', compact('viajesProximos'));
+})->name('viajes.buscar');
+
 Route::get('/dashboard', function () {
-    return view('dashboard');
+     return view('dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {
@@ -57,6 +91,11 @@ Route::middleware(['auth', 'verified'])->prefix('parametrizacion')->name('parame
     Route::resource('rutas', RutaController::class)->parameters(['rutas' => 'ruta'])->except(['show']);
     Route::resource('tipoencomiendas', TipoEncomiendaController::class)->parameters(['tipoencomiendas' => 'tipoEncomienda'])->except(['show']);
     Route::resource('tipoincidencias', TipoIncidenciaController::class)->parameters(['tipoincidencias' => 'tipoIncidencia'])->except(['show']);
+    Route::get('asientoviaje/{asientoviaje}/imprimir', [AsientoViajeController::class, 'imprimir'])
+         ->name('asientoviaje.imprimir');
+    Route::resource('asientoviaje', AsientoViajeController::class)
+         ->parameters(['asientoviaje' => 'asientoviaje'])
+         ->only(['index', 'show', 'edit', 'update']);
 });
 
 Route::middleware(['auth', 'verified'])->prefix('transaccional')->name('transaccional.')->group(function () {
@@ -66,26 +105,29 @@ Route::middleware(['auth', 'verified'])->prefix('transaccional')->name('transacc
     Route::resource('incidenciaviaje', IncidenciaViajeController::class)->parameters(['incidenciaviaje' => 'incidenciaviaje'])->except(['show']);
     Route::resource('encomiendas', EncomiendaController::class)->parameters(['encomiendas' => 'encomienda'])->except(['show']);
     Route::resource('notificaciones', NotificacionController::class)->parameters(['notificaciones' => 'notificacion'])->except(['show']);
-    Route::resource('asientoviaje', AsientoViajeController::class)->parameters(['asientoviaje' => 'asientoviaje']);
     Route::resource('reservas', ReservaController::class)->parameters(['reservas' => 'reserva'])->except(['show']);
 
-    // ← Estas 2 ANTES del resource de boletos
+    // ── RUTAS DE BOLETOS (Peticiones GET y de acción) ───────────────
+    Route::get('boletos/acceso-directo', [BoletoController::class, 'index'])
+         ->name('boletos.acceso-directo');
+
     Route::get('boletos/asientos/{viaje}', [BoletoController::class, 'asientosDisponibles'])
          ->name('boletos.asientos-disponibles');
+
+    Route::get('boletos/viaje/{viaje}', [BoletoController::class, 'porViaje'])
+         ->name('boletos.por-viaje');
+
     Route::patch('boletos/{boleto}/confirmar-pago', [BoletoController::class, 'confirmarPago'])
          ->name('boletos.confirmar-pago');
 
+    // ── RESOURCE DE BOLETOS (Irá después de las rutas GET) ──────────
     Route::resource('boletos', BoletoController::class)->parameters(['boletos' => 'boleto'])->except(['show']);
-    Route::get('boletos/viaje/{viaje}', [BoletoController::class, 'porViaje'])
-         ->name('boletos.por-viaje');
+
     Route::get('encomiendas/{encomienda}/imprimir', [EncomiendaController::class, 'imprimir'])
          ->name('encomiendas.imprimir');
 });
 
-Route::get(
-    'transaccional/boletos/{boleto}/imprimir',
-    [BoletoController::class, 'imprimir']
-)->name('transaccional.boletos.imprimir');
+Route::get('transaccional/boletos/{boleto}/imprimir', [BoletoController::class, 'imprimir'])->name('transaccional.boletos.imprimir');
 
 Route::middleware('guest:cliente')->name('cliente.')->group(function () {
     Route::get('cliente/register', [ClienteAuthController::class, 'showRegistrationForm'])

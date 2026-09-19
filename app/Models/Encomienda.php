@@ -10,7 +10,7 @@ class Encomienda extends Model
     protected $fillable = [
         'cliente_id', 'remitente_nombre', 'remitente_ci', 'remitente_telefono',
         'destinatario_nombre', 'destinatario_ci', 'destinatario_telefono',
-        'viaje_id', 'tipo_encomienda_id', 'cantidad', 'total_pagar', 'estado',
+        'viaje_id', 'tipo_encomienda_id', 'cantidad', 'total_pagar', 'estado', 'usuario_id',
     ];
 
     protected function casts(): array
@@ -23,6 +23,11 @@ class Encomienda extends Model
     public function cliente()
     {
         return $this->belongsTo(Cliente::class);
+    }
+
+    public function usuario()
+    {
+        return $this->belongsTo(User::class);
     }
 
     public function viaje()

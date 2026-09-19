@@ -11,6 +11,11 @@
                 </p>
             </div>
             <div class="flex gap-3">
+                <a href="{{ route('parametrizacion.asientoviaje.imprimir', $viaje) }}"
+                   target="_blank"
+                   class="btn-neutral">
+                    🖨️ Imprimir reporte
+                </a>
                 <a href="{{ route('transaccional.boletos.create') }}"
                    class="btn-primary">
                     + Nuevo Boleto

@@ -2,76 +2,77 @@
     $navigationGroups = [
         [
             'label' => 'Seguridad',
+            'short' => '01',
             'pattern' => 'seguridad.*',
             'items' => [
-                ['label' => 'Usuario', 'route' => 'seguridad.usuarios.index', 'active' => 'seguridad.usuarios.*'],
-                ['label' => 'Rol', 'route' => 'seguridad.roles.index', 'active' => 'seguridad.roles.*'],
-                ['label' => 'Usuario Rol', 'route' => 'seguridad.usuariorol.index', 'active' => 'seguridad.usuariorol.*'],
+                ['label' => 'ADMINISTRAR USUARIO', 'route' => 'seguridad.usuarios.index', 'active' => 'seguridad.usuarios.*', 'permission' => 'usuarios.ver'],
+                ['label' => 'ADMINISTRAR ROL', 'route' => 'seguridad.roles.index', 'active' => 'seguridad.roles.*', 'permission' => 'roles.ver'],
+                ['label' => 'ADMINISTRAR  USUARIO_ROL', 'route' => 'seguridad.usuariorol.index', 'active' => 'seguridad.usuariorol.*', 'permission' => 'usuariorol.ver'],
             ],
         ],
         [
             'label' => 'Parametrización',
+            'short' => '02',
             'pattern' => 'parametrizacion.*',
             'items' => [
-                ['label' => 'Cliente', 'route' => 'parametrizacion.clientes.index', 'active' => 'parametrizacion.clientes.*'],
-                ['label' => 'Bus', 'route' => 'parametrizacion.buses.index', 'active' => 'parametrizacion.buses.*'],
-                ['label' => 'Conductor', 'route' => 'parametrizacion.conductores.index', 'active' => 'parametrizacion.conductores.*'],
-                ['label' => 'Ruta', 'route' => 'parametrizacion.rutas.index', 'active' => 'parametrizacion.rutas.*'],
-                ['label' => 'Tipo encomienda', 'route' => 'parametrizacion.tipoencomiendas.index', 'active' => 'parametrizacion.tipoencomiendas.*'],
-                ['label' => 'Tipo incidencia', 'route' => 'parametrizacion.tipoincidencias.index', 'active' => 'parametrizacion.tipoincidencias.*'],
-                ['label' => 'Notificacion', 'route' => 'transaccional.notificaciones.index', 'active' => 'transaccional.notificaciones.*'],
+                ['label' => 'ADMINISTRAR CLIENTE', 'route' => 'parametrizacion.clientes.index', 'active' => 'parametrizacion.clientes.*', 'permission' => 'clientes.ver'],
+                ['label' => 'ADMINISTRAR BUS', 'route' => 'parametrizacion.buses.index', 'active' => 'parametrizacion.buses.*', 'permission' => 'buses.ver'],
+                ['label' => 'ADMINISTRAR CONDUCTOR', 'route' => 'parametrizacion.conductores.index', 'active' => 'parametrizacion.conductores.*', 'permission' => 'conductores.ver'],
+                ['label' => 'ADMINISTRAR RUTA', 'route' => 'parametrizacion.rutas.index', 'active' => 'parametrizacion.rutas.*', 'permission' => 'rutas.ver'],
+                ['label' => 'ADMINISTRAR TIPO_ENCOMIENDA', 'route' => 'parametrizacion.tipoencomiendas.index', 'active' => 'parametrizacion.tipoencomiendas.*', 'permission' => 'tipoencomiendas.ver'],
+                ['label' => 'ADMINISTRAR TIPOS_INCIDENCIA', 'route' => 'parametrizacion.tipoincidencias.index', 'active' => 'parametrizacion.tipoincidencias.*', 'permission' => 'tipoincidencias.ver'],
+         //       ['label' => 'ADMINISTRAR ASIENTO_VIAJE', 'route' => 'parametrizacion.asientoviaje.index', 'active' => 'parametrizacion.asientoviaje.*', 'permission' => 'asientoviaje.ver'],
+                ['label' => 'ADMINISTRAR NOTIFICACION', 'route' => 'transaccional.notificaciones.index', 'active' => 'transaccional.notificaciones.*', 'permission' => 'notificaciones.ver'],
 
                 ],
         ],
         [
             'label' => 'Transaccional',
+            'short' => '03',
             'pattern' => 'transaccional.*',
             'items' => [
-                ['label' => 'Reserva', 'route' => 'transaccional.reservas.index', 'active' => 'transaccional.reservas.*'],
-                ['label' => 'Boleto', 'route' => 'transaccional.boletos.index', 'active' => 'transaccional.boletos.*'],
-                ['label' => 'Viaje', 'route' => 'transaccional.viajes.index', 'active' => 'transaccional.viajes.*'],
-                ['label' => 'Asignación de conductor', 'route' => 'transaccional.asignacionconductor.index', 'active' => 'transaccional.asignacionconductor.*'],
-                ['label' => 'Incidencia', 'route' => 'transaccional.incidenciaviaje.index', 'active' => 'transaccional.incidenciaviaje.*'],
-                ['label' => 'Encomienda', 'route' => 'transaccional.encomiendas.index', 'active' => 'transaccional.encomiendas.*'],
-                
-            ],
+                ['label' => 'ADMINISTRAR RESERVA', 'route' => 'transaccional.reservas.index', 'active' => 'transaccional.reservas.*', 'permission' => 'reservas.ver'],
+                ['label' => 'ADMINISTRAR BOLETO', 'route' => 'transaccional.boletos.index', 'active' => 'transaccional.boletos.*', 'permission' => 'boletos.ver'],
+                ['label' => 'ADMINISTRAR VIAJE', 'route' => 'transaccional.viajes.index', 'active' => 'transaccional.viajes.*', 'permission' => 'viajes.ver'],
+                ['label' => 'ADMINISTRAR ASIGNACIÓN_CONDUCTOR', 'route' => 'transaccional.asignacionconductor.index', 'active' => 'transaccional.asignacionconductor.*', 'permission' => 'asignacionconductor.ver'],
+                ['label' => 'ADMINISTRAR INCIDENCIA', 'route' => 'transaccional.incidenciaviaje.index', 'active' => 'transaccional.incidenciaviaje.*', 'permission' => 'incidenciaviaje.ver'],
+                ['label' => 'ADMINISTRAR ENCOMIENDA', 'route' => 'transaccional.encomiendas.index', 'active' => 'transaccional.encomiendas.*', 'permission' => 'encomiendas.ver'],
+                ],
         ],
-        [
-            'label' => 'Reportes',
-            'pattern' => 'Reportes.*',
+                [
+            'label' => 'Reporte',
+            'short' => '04',
+            'pattern' => 'transaccional.*',
             'items' => [
-                ['label' => 'Resessadrva', 'route' => 'transaccional.reservas.index', 'active' => 'transaccional.reservas.*'],
-                ['label' => 'Boleto', 'route' => 'transaccional.boletos.index', 'active' => 'transaccional.boletos.*'],
-                ['label' => 'Viaje', 'route' => 'transaccional.viajes.index', 'active' => 'transaccional.viajes.*'],
-                ['label' => 'Asignación de conductor', 'route' => 'transaccional.asignacionconductor.index', 'active' => 'transaccional.asignacionconductor.*'],
-                ['label' => 'Incidencia', 'route' => 'transaccional.incidenciaviaje.index', 'active' => 'transaccional.incidenciaviaje.*'],
-                ['label' => 'Encomienda', 'route' => 'transaccional.encomiendas.index', 'active' => 'transaccional.encomiendas.*'],
-                
-            ],
+                ['label' => 'REPORTE ASIENTO_VIAJE', 'route' => 'parametrizacion.asientoviaje.index', 'active' => 'parametrizacion.asientoviaje.*', 'permission' => 'asientoviaje.ver'],
+ ],
         ],
     ];
 @endphp
 
 <aside class="app-sidebar">
-    <div class="mb-6 rounded-3xl border border-white/10 bg-white/10 p-4 shadow-lg shadow-slate-950/10 backdrop-blur">
-        <p class="text-xs font-semibold uppercase tracking-[0.3em] text-slate-300">PValle</p>
-        <h2 class="mt-2 text-xl font-semibold text-white">Panel de gestión</h2>
-        <p class="mt-1 text-sm text-slate-300">Operaciones, seguridad y viajes en un solo lugar.</p>
+    <div class="sidebar-brand">
+        <div class="min-w-0">
+            <p class="text-[0.65rem] font-bold uppercase tracking-[0.28em] text-slate-400">MI_VALLE</p>
+            <h2 class="mt-1 truncate text-base font-semibold text-white">PANEL DE CONTROL</h2>
+        </div>
     </div>
 
-    <nav class="space-y-3">
+    <nav class="space-y-2">
         @foreach ($navigationGroups as $group)
+            @php($itemsVisibles = collect($group['items'])->filter(fn ($item) => auth()->user()->can($item['permission'])))
+            @if($itemsVisibles->isNotEmpty())
             <div
                 x-data="{ open: {{ request()->routeIs($group['pattern']) ? 'true' : 'false' }} }"
-                class="rounded-3xl border border-white/10 bg-white/5 p-2"
+                class="sidebar-group"
             >
                 <button type="button" @click="open = ! open" class="sidebar-group-trigger">
-                    <span>{{ $group['label'] }}</span>
-                    <span class="text-lg leading-none text-slate-300" x-text="open ? '−' : '+'"></span>
+                    <span class="flex items-center gap-3"><span class="sidebar-group-number">{{ $group['short'] }}</span>{{ $group['label'] }}</span>
+                    <span class="text-base leading-none text-slate-400" x-text="open ? '−' : '+'"></span>
                 </button>
 
                 <div x-show="open" x-cloak class="sidebar-group-panel">
-                    @foreach ($group['items'] as $item)
+                    @foreach ($itemsVisibles as $item)
                         <a
                             href="{{ route($item['route']) }}"
                             @class([
@@ -84,6 +85,8 @@
                     @endforeach
                 </div>
             </div>
+            @endif
         @endforeach
     </nav>
+
 </aside>

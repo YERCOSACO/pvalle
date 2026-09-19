@@ -7,6 +7,7 @@ use App\Models\AsignacionConductor;
 use App\Models\Viaje;
 use App\Models\Conductor;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class AsignacionConductorController extends Controller
 {
@@ -51,8 +52,10 @@ public function store(Request $request)
     $request->validate([
         'viaje_id'             => 'required|exists:viajes,id',
         'conductor_principal'  => 'required|exists:conductores,id',
-        'conductor_relevo'     => 'required|exists:conductores,id|different:conductor_principal',
-        'ayudante'             => 'nullable|exists:conductores,id',
+        'conductor_relevo'     => 'nullable|exists:conductores,id|different:conductor_principal',
+        'tipo_ayudante'        => 'required|in:ninguno,conductor,nombre',
+        'ayudante'             => 'required_if:tipo_ayudante,conductor|nullable|exists:conductores,id|different:conductor_principal,conductor_relevo',
+        'nombre_ayudante'      => 'required_if:tipo_ayudante,nombre|nullable|string|max:255',
     ]);
 
     $yaExiste = AsignacionConductor::where('viaje_id', $request->viaje_id)
@@ -63,25 +66,35 @@ public function store(Request $request)
         return back()->withErrors(['viaje_id' => 'Este viaje ya tiene conductores asignados.']);
     }
 
-    AsignacionConductor::create([
-        'viaje_id'        => $request->viaje_id,
-        'conductor_id'    => $request->conductor_principal,
-        'tipo_asignacion' => 'Principal',
-    ]);
-
-    AsignacionConductor::create([
-        'viaje_id'        => $request->viaje_id,
-        'conductor_id'    => $request->conductor_relevo,
-        'tipo_asignacion' => 'Relevo',
-    ]);
-
-    if ($request->filled('ayudante')) {
+    DB::transaction(function () use ($request) {
         AsignacionConductor::create([
             'viaje_id'        => $request->viaje_id,
-            'conductor_id'    => $request->ayudante,
-            'tipo_asignacion' => 'Ayudante',
+            'conductor_id'    => $request->conductor_principal,
+            'tipo_asignacion' => 'Principal',
         ]);
-    }
+
+        if ($request->filled('conductor_relevo')) {
+            AsignacionConductor::create([
+                'viaje_id'        => $request->viaje_id,
+                'conductor_id'    => $request->conductor_relevo,
+                'tipo_asignacion' => 'Relevo',
+            ]);
+        }
+
+        if ($request->tipo_ayudante === 'conductor') {
+            AsignacionConductor::create([
+                'viaje_id'        => $request->viaje_id,
+                'conductor_id'    => $request->ayudante,
+                'tipo_asignacion' => 'Ayudante',
+            ]);
+        } elseif ($request->tipo_ayudante === 'nombre') {
+            AsignacionConductor::create([
+                'viaje_id'        => $request->viaje_id,
+                'tipo_asignacion' => 'Ayudante',
+                'nombre_ayudante' => $request->nombre_ayudante,
+            ]);
+        }
+    });
 
     return redirect()->route('transaccional.asignacionconductor.index')
                      ->with('success', 'Conductores asignados correctamente.');
@@ -107,30 +120,45 @@ public function update(Request $request, Viaje $viaje)
 
     $request->validate([
         'conductor_principal' => 'required|exists:conductores,id',
-        'conductor_relevo'    => 'required|exists:conductores,id|different:conductor_principal',
-        'ayudante'             => 'nullable|exists:conductores,id',
+        'conductor_relevo'    => 'nullable|exists:conductores,id|different:conductor_principal',
+        'tipo_ayudante'       => 'required|in:ninguno,conductor,nombre',
+        'ayudante'             => 'required_if:tipo_ayudante,conductor|nullable|exists:conductores,id|different:conductor_principal,conductor_relevo',
+        'nombre_ayudante'     => 'required_if:tipo_ayudante,nombre|nullable|string|max:255',
     ]);
 
-    AsignacionConductor::updateOrCreate(
-        ['viaje_id' => $viaje->id, 'tipo_asignacion' => 'Principal'],
-        ['conductor_id' => $request->conductor_principal]
-    );
-
-    AsignacionConductor::updateOrCreate(
-        ['viaje_id' => $viaje->id, 'tipo_asignacion' => 'Relevo'],
-        ['conductor_id' => $request->conductor_relevo]
-    );
-
-    if ($request->filled('ayudante')) {
+    DB::transaction(function () use ($request, $viaje) {
         AsignacionConductor::updateOrCreate(
-            ['viaje_id' => $viaje->id, 'tipo_asignacion' => 'Ayudante'],
-            ['conductor_id' => $request->ayudante]
+            ['viaje_id' => $viaje->id, 'tipo_asignacion' => 'Principal'],
+            ['conductor_id' => $request->conductor_principal]
         );
-    } else {
-        AsignacionConductor::where('viaje_id', $viaje->id)
-                            ->where('tipo_asignacion', 'Ayudante')
-                            ->delete();
-    }
+
+        if ($request->filled('conductor_relevo')) {
+            AsignacionConductor::updateOrCreate(
+                ['viaje_id' => $viaje->id, 'tipo_asignacion' => 'Relevo'],
+                ['conductor_id' => $request->conductor_relevo, 'nombre_ayudante' => null]
+            );
+        } else {
+            AsignacionConductor::where('viaje_id', $viaje->id)
+                                ->where('tipo_asignacion', 'Relevo')
+                                ->delete();
+        }
+
+        if ($request->tipo_ayudante === 'conductor') {
+            AsignacionConductor::updateOrCreate(
+                ['viaje_id' => $viaje->id, 'tipo_asignacion' => 'Ayudante'],
+                ['conductor_id' => $request->ayudante, 'nombre_ayudante' => null]
+            );
+        } elseif ($request->tipo_ayudante === 'nombre') {
+            AsignacionConductor::updateOrCreate(
+                ['viaje_id' => $viaje->id, 'tipo_asignacion' => 'Ayudante'],
+                ['conductor_id' => null, 'nombre_ayudante' => $request->nombre_ayudante]
+            );
+        } else {
+            AsignacionConductor::where('viaje_id', $viaje->id)
+                                ->where('tipo_asignacion', 'Ayudante')
+                                ->delete();
+        }
+    });
 
     return redirect()->route('transaccional.asignacionconductor.index')
                      ->with('success', 'Asignación actualizada correctamente.');
@@ -140,7 +168,9 @@ public function destroy(Viaje $viaje)
 {
     $this->authorize('asignacionconductor.eliminar');
 
-    AsignacionConductor::where('viaje_id', $viaje->id)->delete();
+    DB::transaction(function () use ($viaje) {
+        AsignacionConductor::where('viaje_id', $viaje->id)->delete();
+    });
 
     return redirect()->route('transaccional.asignacionconductor.index')
                      ->with('success', 'Asignación eliminada correctamente.');

@@ -11,6 +11,7 @@ class RolController extends Controller
 {
     public function index(Request $request)
 {
+    //3//////////////////////////////////////////
     $this->authorize('roles.ver');
 
     $roles = Role::with('permissions')

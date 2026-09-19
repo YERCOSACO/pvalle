@@ -4,24 +4,19 @@
         <div class="flex justify-between h-16">
             <div class="flex">
 <!-- Logo -->
-<div class="shrink-0 flex items-center">
-    <a href="{{ route('dashboard') }}" class="flex items-center gap-3">
-        <div class="flex h-10 w-10 items-center justify-center rounded-2xl bg-slate-900 shadow-lg shadow-slate-900/15">
-            <span class="text-white font-bold text-base">P</span>
-        </div>
-        <div>
-            <span class="block text-sm font-semibold uppercase tracking-[0.28em] text-slate-400">PValle</span>
-            <span class="block text-base font-semibold text-slate-900">Centro de control</span>
-        </div>
-    </a>
+<div class="shrink-0 flex min-w-[8rem] items-center">
+                    <x-brand-logo href="{{ route('dashboard') }}" size="header" />
 </div>
 
                 <!-- Navigation Links -->
-                <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
-                    <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
-                        {{ __('Dashboard') }}
-                    </x-nav-link>
-                </div>
+<div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
+    <x-nav-link :href="route('dashboard')" 
+            :active="request()->routeIs('dashboard')" 
+            class="text-white px-4 py-2 rounded bg-gradient-to-r from-teal-600 to-teal-400 hover:opacity-90">
+    {{ __('DASHBOARD') }}
+</x-nav-link>
+</div>
+
             </div>
 
             <!-- Settings Dropdown -->
@@ -41,7 +36,7 @@
 
                     <x-slot name="content">
                         <x-dropdown-link :href="route('profile.edit')">
-                            {{ __('Profile') }}
+                            {{ __('PERFIL') }}
                         </x-dropdown-link>
 
                         <!-- Authentication -->
@@ -51,7 +46,7 @@
                             <x-dropdown-link :href="route('logout')"
                                     onclick="event.preventDefault();
                                                 this.closest('form').submit();">
-                                {{ __('Log Out') }}
+                                {{ __('CERRAR SESIÓN') }}
                             </x-dropdown-link>
                         </form>
                     </x-slot>

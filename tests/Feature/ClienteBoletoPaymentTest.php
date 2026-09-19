@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\AsientoViaje;
 use App\Models\Boleto;
 use App\Models\Bus;
 use App\Models\Cliente;
@@ -60,7 +61,6 @@ class ClienteBoletoPaymentTest extends TestCase
             'cliente_id' => $cliente->id,
             'fecha_reserva' => now(),
             'cantidad' => 1,
-            'total_pagar' => 0,
             'estado' => 'pendiente',
             'estado_base' => 1,
         ]);
@@ -132,7 +132,6 @@ class ClienteBoletoPaymentTest extends TestCase
             'cliente_id' => $cliente->id,
             'fecha_reserva' => now(),
             'cantidad' => 1,
-            'total_pagar' => 0,
             'estado' => 'pendiente',
             'estado_base' => 1,
         ]);
@@ -164,6 +163,169 @@ class ClienteBoletoPaymentTest extends TestCase
             'id' => $boleto->id,
             'estado' => 'pendiente',
             'comprobante_path' => 'comprobantes/' . $file->hashName(),
+        ]);
+    }
+
+    public function test_cliente_can_send_tipo_pasajero_and_persist_booking_type_flags(): void
+    {
+        $cliente = Cliente::create([
+            'nombre' => 'Ana',
+            'apellido' => 'Mendoza',
+            'cedula' => '7654321',
+            'email' => 'ana@example.com',
+            'contrasena' => bcrypt('password'),
+            'telefono' => '70987654',
+            'direccion' => 'Santa Cruz',
+            'fecha_nacimiento' => '1992-02-02',
+            'estado_base' => 1,
+        ]);
+
+        $ruta = Ruta::create([
+            'origen' => 'La Paz',
+            'destino' => 'Santa Cruz',
+            'distancia_km' => 800,
+            'precio_base' => 150,
+            'estado_base' => 1,
+        ]);
+
+        $bus = Bus::create([
+            'placa' => '456XYZ',
+            'capacidad' => 20,
+            'modelo' => 'Volvo',
+            'tipo_bus' => 'Premium',
+            'estado_base' => 1,
+        ]);
+
+        $viaje = Viaje::create([
+            'ruta_id' => $ruta->id,
+            'bus_id' => $bus->id,
+            'fecha_viaje' => now()->addDay()->toDateString(),
+            'hora_salida' => '10:00',
+            'estado' => 'programado',
+            'estado_base' => 1,
+        ]);
+
+        AsientoViaje::create([
+            'viaje_id' => $viaje->id,
+            'numero_asiento' => '1A',
+            'estado' => 'disponible',
+            'estado_base' => 1,
+        ]);
+
+        $reserva = Reserva::create([
+            'cliente_id' => $cliente->id,
+            'fecha_reserva' => now(),
+            'cantidad' => 1,
+            'estado' => 'pendiente',
+            'estado_base' => 1,
+        ]);
+
+        $response = $this->actingAs($cliente, 'cliente')->post(route('cliente.boletos.store'), [
+            'reserva_id' => $reserva->id,
+            'viaje_id' => $viaje->id,
+            'numero_asiento' => ['1A'],
+            'tipo_pasajero' => ['normal'],
+            'metodo_pago' => 'QR',
+        ]);
+
+        $response->assertRedirect(route('cliente.boletos.qr', $reserva));
+        $this->assertDatabaseHas('boletos', [
+            'reserva_id' => $reserva->id,
+            'viaje_id' => $viaje->id,
+            'numero_asiento' => '1A',
+            'espacio_extra' => 0,
+            'mascota' => 0,
+        ]);
+    }
+
+    public function test_cliente_forces_labels_for_comodidad_and_mascota_even_if_passenger_name_array_is_sent(): void
+    {
+        $cliente = Cliente::create([
+            'nombre' => 'Ana',
+            'apellido' => 'Mendoza',
+            'cedula' => '7654321',
+            'email' => 'ana2@example.com',
+            'contrasena' => bcrypt('password'),
+            'telefono' => '70987654',
+            'direccion' => 'Santa Cruz',
+            'fecha_nacimiento' => '1992-02-02',
+            'estado_base' => 1,
+        ]);
+
+        $ruta = Ruta::create([
+            'origen' => 'La Paz',
+            'destino' => 'Santa Cruz',
+            'distancia_km' => 800,
+            'precio_base' => 150,
+            'estado_base' => 1,
+        ]);
+
+        $bus = Bus::create([
+            'placa' => '789XYZ',
+            'capacidad' => 20,
+            'modelo' => 'Volvo',
+            'tipo_bus' => 'Premium',
+            'estado_base' => 1,
+        ]);
+
+        $viaje = Viaje::create([
+            'ruta_id' => $ruta->id,
+            'bus_id' => $bus->id,
+            'fecha_viaje' => now()->addDay()->toDateString(),
+            'hora_salida' => '10:00',
+            'estado' => 'programado',
+            'estado_base' => 1,
+        ]);
+
+        AsientoViaje::create([
+            'viaje_id' => $viaje->id,
+            'numero_asiento' => '1A',
+            'estado' => 'disponible',
+            'estado_base' => 1,
+        ]);
+
+        AsientoViaje::create([
+            'viaje_id' => $viaje->id,
+            'numero_asiento' => '1B',
+            'estado' => 'disponible',
+            'estado_base' => 1,
+        ]);
+
+        $reserva = Reserva::create([
+            'cliente_id' => $cliente->id,
+            'fecha_reserva' => now(),
+            'cantidad' => 2,
+            'estado' => 'pendiente',
+            'estado_base' => 1,
+        ]);
+
+        $response = $this->actingAs($cliente, 'cliente')->post(route('cliente.boletos.store'), [
+            'reserva_id' => $reserva->id,
+            'viaje_id' => $viaje->id,
+            'numero_asiento' => ['1A', '1B'],
+            'tipo_pasajero' => ['comodidad', 'mascota'],
+            'nombre_pasajero' => ['melisa tapia', 'melisa tapia'],
+            'ci_pasajero' => ['31231232', '31231232'],
+            'telefono_pasajero' => ['71123123', '71123123'],
+            'metodo_pago' => 'QR',
+        ]);
+
+        $response->assertRedirect(route('cliente.boletos.qr', $reserva));
+        $this->assertDatabaseHas('boletos', [
+            'reserva_id' => $reserva->id,
+            'viaje_id' => $viaje->id,
+            'numero_asiento' => '1A',
+            'nombre_pasajero' => 'Comodidad (espacio extra)',
+            'espacio_extra' => 1,
+            'mascota' => 0,
+        ]);
+        $this->assertDatabaseHas('boletos', [
+            'reserva_id' => $reserva->id,
+            'viaje_id' => $viaje->id,
+            'numero_asiento' => '1B',
+            'nombre_pasajero' => 'Mascota',
+            'espacio_extra' => 0,
+            'mascota' => 1,
         ]);
     }
 
@@ -206,11 +368,17 @@ class ClienteBoletoPaymentTest extends TestCase
             'estado_base' => 1,
         ]);
 
+        AsientoViaje::create([
+            'viaje_id' => $viaje->id,
+            'numero_asiento' => '1A',
+            'estado' => 'disponible',
+            'estado_base' => 1,
+        ]);
+
         $reserva = Reserva::create([
             'cliente_id' => $cliente->id,
             'fecha_reserva' => now(),
             'cantidad' => 1,
-            'total_pagar' => 0,
             'estado' => 'pendiente',
             'estado_base' => 1,
         ]);
@@ -232,6 +400,7 @@ class ClienteBoletoPaymentTest extends TestCase
             'reserva_id' => $reserva->id,
             'viaje_id' => $viaje->id,
             'numero_asiento' => ['1A'],
+            'tipo_pasajero' => ['normal'],
             'metodo_pago' => 'QR',
         ]);
 

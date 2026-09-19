@@ -8,14 +8,13 @@ use Illuminate\Database\Eloquent\Builder;
 class Reserva extends Model
 {
     protected $fillable = [
-        'cliente_id', 'fecha_reserva', 'cantidad', 'total_pagar', 'estado',
+        'cliente_id', 'fecha_reserva', 'cantidad', 'estado',
     ];
 
     protected function casts(): array
     {
         return [
             'fecha_reserva' => 'datetime',
-            'total_pagar'   => 'decimal:2',
         ];
     }
 

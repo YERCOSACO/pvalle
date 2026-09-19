@@ -28,7 +28,7 @@
         </div>
 
         <div class="mt-6 text-center text-sm text-gray-500">
-            <p>¿No eres cliente? <a href="{{ route('login') }}" class="font-medium text-indigo-600 hover:text-indigo-900">Volver a acceso administrativo</a>.</p>
+            <p>¿No eres cliente? <a href="{{ route('login') }}" class="font-medium text-indigo-600 hover:text-indigo-900">Volver a menu</a>.</p>
         </div>
     </form>
 </x-guest-layout>

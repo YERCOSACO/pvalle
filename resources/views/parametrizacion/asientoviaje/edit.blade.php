@@ -7,9 +7,9 @@
 
     <div class="py-8 max-w-2xl mx-auto px-4">
         <div class="bg-white shadow rounded-lg p-6">
-            <form method="POST" action="{{ route('transaccional.asientoviaje.update', $asientoviaje) }}">
+            <form method="POST" action="{{ route('parametrizacion.asientoviaje.update', $asientoviaje) }}">
                 @csrf @method('PUT')
-                @include('transaccional.asientoviaje._form')
+                @include('parametrizacion.asientoviaje._form')
             </form>
         </div>
     </div>

@@ -13,7 +13,7 @@
     </head>
     <body class="font-sans antialiased">
         <div class="app-shell lg:grid lg:min-h-screen lg:grid-cols-[18rem_minmax(0,1fr)]">
-            <div class="hidden border-r border-white/10 bg-slate-950 lg:block">
+            <div class="hidden border-r border-slate-200 bg-slate-50 lg:block">
                 <div class="sticky top-0 min-h-screen p-4">
                     <x-sidebar />
                 </div>

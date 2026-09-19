@@ -9,6 +9,7 @@ use App\Models\IncidenciaViaje;
 use App\Models\Encomienda;
 use App\Models\Boleto;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class NotificacionController extends Controller
 {
@@ -66,18 +67,20 @@ class NotificacionController extends Controller
             default      => null,
         };
 
-        Notificacion::create([
-            'cliente_id'         => $request->cliente_id,
-            'titulo'             => $request->titulo,
-            'mensaje'            => $request->mensaje,
-            'tipo'               => $request->tipo,
-            'canal'              => $request->canal,
-            'prioridad'          => $request->prioridad,
-            'fecha_envio'        => now(),
-            'referenciable_id'   => $referenciableType ? $request->origen_id : null,
-            'referenciable_type' => $referenciableType,
-            'estado'             => 'enviada',
-        ]);
+        DB::transaction(function () use ($request, $referenciableType) {
+            Notificacion::create([
+                'cliente_id'         => $request->cliente_id,
+                'titulo'             => $request->titulo,
+                'mensaje'            => $request->mensaje,
+                'tipo'               => $request->tipo,
+                'canal'              => $request->canal,
+                'prioridad'          => $request->prioridad,
+                'fecha_envio'        => now(),
+                'referenciable_id'   => $referenciableType ? $request->origen_id : null,
+                'referenciable_type' => $referenciableType,
+                'estado'             => 'enviada',
+            ]);
+        });
 
         return redirect()->route('transaccional.notificaciones.index')
                          ->with('success', 'Notificación enviada correctamente.');
@@ -104,7 +107,9 @@ class NotificacionController extends Controller
             'estado'    => 'required|in:pendiente,enviada,leida',
         ]);
 
-        $notificacion->update($request->only('titulo', 'mensaje', 'tipo', 'prioridad', 'estado'));
+        DB::transaction(function () use ($notificacion, $request) {
+            $notificacion->update($request->only('titulo', 'mensaje', 'tipo', 'prioridad', 'estado'));
+        });
 
         return redirect()->route('transaccional.notificaciones.index')
                          ->with('success', 'Notificación actualizada correctamente.');
@@ -114,7 +119,9 @@ class NotificacionController extends Controller
     {
         $this->authorize('notificaciones.eliminar');
 
-        $notificacion->update(['estado_base' => 0]);
+        DB::transaction(function () use ($notificacion) {
+            $notificacion->update(['estado_base' => 0]);
+        });
 
         return redirect()->route('transaccional.notificaciones.index')
                          ->with('success', 'Notificación eliminada correctamente.');

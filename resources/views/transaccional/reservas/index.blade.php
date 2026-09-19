@@ -38,7 +38,6 @@
                         <th class="px-6 py-3 text-left">Cliente</th>
                         <th class="px-6 py-3 text-left">Fecha</th>
                         <th class="px-6 py-3 text-left">Boletos</th>
-                        <th class="px-6 py-3 text-left">Total</th>
                         <th class="px-6 py-3 text-left">Estado</th>
                         <th class="px-6 py-3 text-left">Acciones</th>
                     </tr>
@@ -52,7 +51,6 @@
                         <td class="px-6 py-3 text-gray-500">
                             {{ $reserva->boletos->count() }} / {{ $reserva->cantidad }}
                         </td>
-                        <td class="px-6 py-3 text-gray-500">Bs {{ number_format($reserva->total_pagar, 2) }}</td>
                         <td class="px-6 py-3">
                             @php
                                 $colores = ['pendiente' => 'bg-yellow-100 text-yellow-700', 'confirmada' => 'bg-green-100 text-green-700', 'cancelada' => 'bg-red-100 text-red-700'];
@@ -76,7 +74,7 @@
                         </td>
                     </tr>
                     @empty
-                    <tr><td colspan="7" class="px-6 py-8 text-center text-gray-400">Sin reservas registradas.</td></tr>
+                    <tr><td colspan="6" class="px-6 py-8 text-center text-gray-400">Sin reservas registradas.</td></tr>
                     @endforelse
                 </tbody>
             </table>

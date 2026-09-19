@@ -2,15 +2,19 @@
 
 namespace App\Http\Controllers\Transaccional;
 use Illuminate\Support\Facades\DB;
-use App\Models\AsientoViaje;
 use App\Http\Controllers\Controller;
 use App\Models\Viaje;
 use App\Models\Bus;
 use App\Models\Ruta;
+use App\Services\ViajeAsientosService;
 use Illuminate\Http\Request;
 
 class ViajeController extends Controller
 {
+    public function __construct(private ViajeAsientosService $asientosService)
+    {
+    }
+
     public function index(Request $request)
 {
     $this->authorize('viajes.ver');
@@ -53,23 +57,7 @@ class ViajeController extends Controller
     DB::transaction(function () use ($request) {
         $viaje = Viaje::create($request->only('ruta_id', 'bus_id', 'fecha_viaje', 'hora_salida'));
 
-        $bus = Bus::find($request->bus_id);
-        $letras = ['A', 'B', 'C', 'D'];
-        $filas = ceil($bus->capacidad / 4);
-
-        $asientosCreados = 0;
-        foreach (range(1, $filas) as $fila) {
-            foreach ($letras as $letra) {
-                if ($asientosCreados >= $bus->capacidad) break;
-
-                AsientoViaje::create([
-                    'viaje_id'       => $viaje->id,
-                    'numero_asiento' => $fila . $letra,
-                    'estado'         => 'disponible',
-                ]);
-                $asientosCreados++;
-            }
-        }
+        $this->asientosService->crearParaViaje($viaje);
     });
 
     return redirect()->route('transaccional.viajes.index')
@@ -98,7 +86,9 @@ class ViajeController extends Controller
             'estado'      => 'required|in:programado,en curso,finalizado,cancelado',
         ]);
 
-        $viaje->update($request->only('ruta_id', 'bus_id', 'fecha_viaje', 'hora_salida', 'estado'));
+        DB::transaction(function () use ($viaje, $request) {
+            $viaje->update($request->only('ruta_id', 'bus_id', 'fecha_viaje', 'hora_salida', 'estado'));
+        });
 
         return redirect()->route('transaccional.viajes.index')
                          ->with('success', 'Viaje actualizado correctamente.');
@@ -108,7 +98,9 @@ class ViajeController extends Controller
     {
         $this->authorize('viajes.eliminar');
 
-        $viaje->update(['estado_base' => 0]);
+        DB::transaction(function () use ($viaje) {
+            $viaje->update(['estado_base' => 0]);
+        });
 
         return redirect()->route('transaccional.viajes.index')
                          ->with('success', 'Viaje eliminado correctamente.');

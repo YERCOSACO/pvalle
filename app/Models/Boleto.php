@@ -12,7 +12,7 @@ class Boleto extends Model
         'reserva_id', 'viaje_id', 'numero_asiento',
         'nombre_pasajero', 'ci_pasajero', 'telefono_pasajero',
         'precio', 'metodo_pago', 'estado', 'expira_en',
-        'comprobante_path',
+        'comprobante_path', 'espacio_extra', 'mascota',
     ];
 
     protected function casts(): array
