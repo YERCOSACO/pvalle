@@ -61,5 +61,61 @@
                 {{ $slot }}
             </main>
         </div>
+        <script>
+            (() => {
+                // Si el servidor no confirma recepción, se bloquea el formulario de reserva.
+                const gate = document.querySelector('[data-reception-gate]');
+                if (!gate) return;
+
+                const form = document.querySelector('[data-reception-protected-form]');
+                const button = form?.querySelector('[data-reception-submit]');
+                const message = gate.querySelector('[data-reception-message]');
+                const onlineMessage = gate.querySelector('[data-reception-online]');
+                const endpoint = gate.dataset.statusUrl;
+
+                const render = (available) => {
+                    gate.dataset.available = available ? 'true' : 'false';
+                    message.hidden = available;
+                    if (onlineMessage) onlineMessage.hidden = !available;
+                    if (button) button.disabled = !available;
+                    window.dispatchEvent(new CustomEvent('reception-availability-change', {
+                        detail: { available },
+                    }));
+                };
+
+                const refresh = async () => {
+                    try {
+                        const response = await fetch(endpoint, {
+                            credentials: 'same-origin',
+                            cache: 'no-store',
+                            headers: { 'Accept': 'application/json' },
+                        });
+                        if (!response.ok) throw new Error('Availability check failed');
+                        const data = await response.json();
+                        render(data.available === true);
+                    } catch {
+                        render(false);
+                    }
+                };
+
+                render(gate.dataset.available === 'true');
+                refresh();
+                window.setInterval(refresh, 10000);
+                window.addEventListener('offline', () => render(false));
+                window.addEventListener('online', refresh);
+                document.addEventListener('visibilitychange', () => {
+                    if (!document.hidden) refresh();
+                });
+            })();
+        </script>
+        {{-- Indicador visual de internet; no guarda ni sincroniza formularios. --}}
+        <div data-network-status
+             class="fixed bottom-4 right-4 z-50 flex items-center gap-2 rounded-full bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-700 shadow-lg"
+             role="status"
+             aria-live="polite"
+             title="Se comprueba el acceso a internet. No identifica si la conexión es Wi-Fi o cable.">
+            <span data-network-indicator class="h-2.5 w-2.5 rounded-full bg-slate-400"></span>
+            <span data-network-label>Comprobando conexión...</span>
+        </div>
     </body>
 </html>

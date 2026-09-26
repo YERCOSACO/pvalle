@@ -8,6 +8,7 @@ use App\Models\Boleto;
 use App\Models\Reserva;
 use App\Models\Viaje;
 use App\Services\ViajeAsientosService;
+use App\Services\ReceptionAvailability;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -36,7 +37,7 @@ class BoletoController extends Controller
     {
     }
 
-    public function create(Reserva $reserva): View
+    public function create(Reserva $reserva, ReceptionAvailability $availability): View
     {
         $cliente = auth('cliente')->user();
         abort_if($reserva->cliente_id !== $cliente->id || $reserva->estado_base !== 1, 404);
@@ -49,7 +50,11 @@ class BoletoController extends Controller
             ->reservables()
             ->get();
 
-        return view('cliente.boletos.create', compact('reserva', 'viajes'));
+        return view('cliente.boletos.create', [
+            'reserva' => $reserva,
+            'viajes' => $viajes,
+            'receptionAvailable' => $availability->isAvailable(),
+        ]);
     }
 
     public function asientosDisponibles(Viaje $viaje)
@@ -66,8 +71,15 @@ class BoletoController extends Controller
         ]);
     }
 
-    public function store(Request $request)
+    public function store(Request $request, ReceptionAvailability $availability)
     {
+        // Revalida recepción antes de registrar los asientos y generar el pago.
+        if (! $availability->isAvailable()) {
+            return back()->withInput()->withErrors([
+                'recepcion' => 'En este momento no podemos procesar reservas en línea. Por favor, llame al ' . config('app.support_phone') . ' para reservar por teléfono.',
+            ]);
+        }
+
         $request->validate([
             'reserva_id' => 'required|exists:reservas,id',
             'viaje_id' => 'required|exists:viajes,id',

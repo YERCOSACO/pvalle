@@ -32,10 +32,60 @@
 
                 <main class="flex-1">
                     <div class="page-content-shell">
+                        @if (auth()->check() && auth()->user()->hasRole('Recepcionista'))
+                            {{-- Estado de la señal enviada por esta sesión de recepción, no del internet global. --}}
+                            <div id="reception-heartbeat-status" class="mb-4 text-right text-xs text-slate-500" role="status" aria-live="polite">
+                                Verificando conexión con recepción...
+                            </div>
+                        @endif
                         {{ $slot }}
                     </div>
                 </main>
             </div>
+        </div>
+        @if (auth()->check() && auth()->user()->hasRole('Recepcionista'))
+            <script>
+                (() => {
+                    const status = document.getElementById('reception-heartbeat-status');
+                    const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
+                    const sendHeartbeat = async () => {
+                        try {
+                            const response = await fetch(@json(route('recepcion.presencia')), {
+                                method: 'POST',
+                                credentials: 'same-origin',
+                                cache: 'no-store',
+                                headers: {
+                                    'Accept': 'application/json',
+                                    'X-CSRF-TOKEN': csrfToken,
+                                },
+                            });
+                            const data = await response.json();
+
+                            if (!response.ok || data.ok !== true) throw new Error('Heartbeat rejected');
+                            status.textContent = 'Tu conexión con recepción está activa.';
+                            status.className = 'mb-4 text-right text-xs text-emerald-700';
+                        } catch {
+                            status.textContent = 'No se pudo confirmar la conexión. Las reservas en línea podrían pausarse.';
+                            status.className = 'mb-4 text-right text-xs text-amber-700';
+                        }
+                    };
+
+                    sendHeartbeat();
+                    window.setInterval(sendHeartbeat, 15000);
+                    document.addEventListener('visibilitychange', () => {
+                        if (!document.hidden) sendHeartbeat();
+                    });
+                })();
+            </script>
+        @endif
+        {{-- Indicador visual de acceso a internet, compartido en las pantallas del personal. --}}
+        <div data-network-status
+             class="fixed bottom-4 right-4 z-50 flex items-center gap-2 rounded-full bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-700 shadow-lg"
+             role="status"
+             aria-live="polite"
+             title="Se comprueba el acceso a internet. No identifica si la conexión es Wi-Fi o cable.">
+            <span data-network-indicator class="h-2.5 w-2.5 rounded-full bg-slate-400"></span>
+            <span data-network-label>Comprobando conexión...</span>
         </div>
     </body>
 </html>

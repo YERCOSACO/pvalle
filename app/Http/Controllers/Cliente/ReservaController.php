@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Cliente;
 use App\Http\Controllers\Controller;
 use App\Models\Reserva;
 use App\Models\Viaje;
+use App\Services\ReceptionAvailability;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
@@ -28,16 +29,24 @@ class ReservaController extends Controller
         return view('cliente.reservas.index', compact('reservasPorViaje', 'reservasSinViaje'));
     }
 
-    public function create(): View
+    public function create(ReceptionAvailability $availability): View
     {
         return view('cliente.reservas.create', [
             'viajeId' => request('viaje_id'),
             'cantidad' => request('pasajeros', 1),
+            'receptionAvailable' => $availability->isAvailable(),
         ]);
     }
 
-    public function store(Request $request)
+    public function store(Request $request, ReceptionAvailability $availability)
     {
+        // Comprobación del servidor: el bloqueo del botón del navegador no es suficiente.
+        if (! $availability->isAvailable()) {
+            return back()->withInput()->withErrors([
+                'recepcion' => 'En este momento no podemos procesar reservas en línea. Por favor, llame al ' . config('app.support_phone') . ' para reservar por teléfono.',
+            ]);
+        }
+
         $request->validate([
             //10//////////////////////////////////////////////////////////////////
             'cantidad' => 'required|integer|min:1|max:4',
@@ -72,6 +81,6 @@ class ReservaController extends Controller
             'reserva' => $reserva,
             'viaje_id' => $request->viaje_id,
         ])
-                         ->with('success', 'Reserva creada. Ahora selecciona tus asientos y genera el QR de pago.');
+                         ->with('success', 'Solicitud iniciada. Aún debes elegir los asientos y completar el proceso de pago; esto no confirma tu boleto.');
     }
 }

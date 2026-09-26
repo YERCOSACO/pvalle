@@ -54,6 +54,8 @@ return [
 
     'url' => env('APP_URL', 'http://localhost'),
 
+    'support_phone' => env('APP_SUPPORT_PHONE', '+591 71005452'),
+
     /*
     |--------------------------------------------------------------------------
     | Application Timezone

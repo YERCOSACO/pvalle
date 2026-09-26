@@ -5,8 +5,20 @@
             <p class="mt-2 text-sm text-[#12241C]/60">Elige los asientos para tu reserva y genera el QR de pago.</p>
         </div>
 
+        <div data-reception-gate
+             data-available="{{ $receptionAvailable ? 'true' : 'false' }}"
+             data-status-url="{{ route('cliente.recepcion.disponibilidad') }}"
+             class="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-800">
+            <p data-reception-online @if(! $receptionAvailable) hidden @endif>Recepción está disponible. Puedes continuar con tu reserva.</p>
+            <div data-reception-message @if($receptionAvailable) hidden @endif class="text-amber-900">
+                <p class="font-semibold">No podemos confirmar la disponibilidad de recepción en línea en este momento.</p>
+                <p class="mt-1">Para reservar, llama al <a class="font-bold underline" href="tel:{{ preg_replace('/\D+/', '', (string) config('app.support_phone')) }}">{{ config('app.support_phone') }}</a>.</p>
+            </div>
+        </div>
+
         <div class="rounded-2xl border border-black/10 bg-white p-6 shadow-sm">
-            <form method="POST" action="{{ route('cliente.boletos.store') }}" x-data="{
+            <form method="POST" action="{{ route('cliente.boletos.store') }}" data-reception-protected-form x-data="{
+                receptionAvailable: @js($receptionAvailable),
                 viajeId: '{{ old('viaje_id', request('viaje_id', '')) }}',
                 cantidadBoletos: {{ $reserva->cantidad }},
                 asientosSeleccionados: [],
@@ -78,7 +90,7 @@
                     filas.push(this.todosAsientos.slice(-5));
                     return filas;
                 }
-            }">
+            }" x-init="window.addEventListener('reception-availability-change', event => receptionAvailable = event.detail.available)">
                 @csrf
                 <input type="hidden" name="reserva_id" value="{{ $reserva->id }}">
 
@@ -210,7 +222,8 @@
                     <a href="{{ route('cliente.reservas.index') }}" class="inline-flex items-center rounded-full border border-black/15 bg-white px-4 py-2 text-sm font-semibold text-[#12241C]/70 hover:bg-[#F6F3E9]">
                         Volver
                     </a>
-                    <button type="submit" x-bind:disabled="asientosSeleccionados.length !== cantidadBoletos || cargando"
+                    <button type="submit" data-reception-submit @disabled(! $receptionAvailable)
+                            x-bind:disabled="!receptionAvailable || asientosSeleccionados.length !== cantidadBoletos || cargando"
                             class="inline-flex items-center rounded-full bg-[#6FCF64] px-5 py-2.5 text-sm font-bold text-[#0B2A1E] transition hover:bg-[#9BE28C] disabled:cursor-not-allowed disabled:opacity-50">
                         Continuar al pago
                     </button>

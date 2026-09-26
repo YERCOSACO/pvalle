@@ -6,8 +6,19 @@
             <p class="mt-3 max-w-xl text-sm leading-6 text-slate-300">Indica cuántos boletos necesitas. En el siguiente paso podrás elegir un viaje futuro y sus asientos disponibles.</p>
         </div>
 
+        <div data-reception-gate
+             data-available="{{ $receptionAvailable ? 'true' : 'false' }}"
+             data-status-url="{{ route('cliente.recepcion.disponibilidad') }}"
+             class="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-800">
+            <p data-reception-online @if(! $receptionAvailable) hidden @endif>Recepción está disponible. Puedes continuar con tu reserva.</p>
+            <div data-reception-message @if($receptionAvailable) hidden @endif class="text-amber-900">
+                <p class="font-semibold">No podemos confirmar la disponibilidad de recepción en línea en este momento.</p>
+                <p class="mt-1">Para reservar, llama al <a class="font-bold underline" href="tel:{{ preg_replace('/\D+/', '', (string) config('app.support_phone')) }}">{{ config('app.support_phone') }}</a>.</p>
+            </div>
+        </div>
+
         <div class="rounded-2xl border border-black/10 bg-white p-6 shadow-sm sm:p-8">
-            <form method="POST" action="{{ route('cliente.reservas.store') }}">
+            <form method="POST" action="{{ route('cliente.reservas.store') }}" data-reception-protected-form>
 
                 //4///////////////////////////////////////////////////////
                 @csrf
@@ -22,7 +33,7 @@
 
                 <div class="mt-8 flex flex-col-reverse gap-3 border-t border-black/10 pt-6 sm:flex-row sm:justify-end">
                     <a href="{{ route('cliente.reservas.index') }}" class="inline-flex items-center justify-center rounded-xl border border-black/15 px-4 py-3 text-sm font-semibold text-[#12241C]/70 hover:bg-[#F6F3E9]">Cancelar</a>
-                    <button type="submit" class="inline-flex items-center justify-center rounded-xl bg-[#6FCF64] px-4 py-3 text-sm font-bold text-[#0B2A1E] hover:bg-[#9BE28C]">Continuar a los asientos</button>
+                    <button type="submit" data-reception-submit @disabled(! $receptionAvailable) class="inline-flex items-center justify-center rounded-xl bg-[#6FCF64] px-4 py-3 text-sm font-bold text-[#0B2A1E] hover:bg-[#9BE28C] disabled:cursor-not-allowed disabled:opacity-50">Continuar a los asientos</button>
                 </div>
             </form>
         </div>
