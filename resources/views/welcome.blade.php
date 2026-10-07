@@ -15,72 +15,7 @@
 
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=fraunces:500,600,700,600i|figtree:400,500,600,700|plus-jakarta-sans:400,500,600,700,800&display=swap" rel="stylesheet" />
-        @vite(['resources/css/app.css', 'resources/js/app.js'])
-        <style>
-            :root{
-                --mv-bosque-900:#0B2A1E;
-                --mv-bosque-800:#0F3626;
-                --mv-selva-600:#1B6B45;
-                --mv-selva-500:#238453;
-                --mv-brote-400:#6FCF64;
-                --mv-brote-300:#9BE28C;
-                --mv-sol-400:#F2C94C;
-                --mv-piedra-50:#F6F3E9;
-                --mv-piedra-100:#EEE9D8;
-                --mv-tinta-900:#12241C;
-                --mv-blanco:#FBFAF5;
-            }
-            [x-cloak]{ display:none !important; }
-            .font-display{ font-family:'Fraunces', ui-serif, Georgia, serif; }
-            .font-eyebrow{ font-family:'Figtree', ui-sans-serif, sans-serif; }
-            body{ font-family:'Plus Jakarta Sans', ui-sans-serif, sans-serif; color:var(--mv-tinta-900); background:var(--mv-piedra-50); }
-
-            /* Cresta de montañas — elemento firma, hace eco del logo */
-            .mv-cresta{
-                position:absolute; left:0; right:0; bottom:-1px; height:120px;
-                background-repeat:no-repeat; background-size:cover; background-position:bottom;
-            }
-            .mv-cresta svg{ width:100%; height:100%; display:block; }
-            .mv-cresta-watermark{
-                position:absolute; inset:0; opacity:.06; pointer-events:none;
-            }
-
-            .mv-btn-primary{
-                background:var(--mv-brote-400); color:var(--mv-bosque-900);
-                box-shadow:0 10px 30px -12px rgba(111,207,100,.55);
-            }
-            .mv-btn-primary:hover{ background:var(--mv-brote-300); }
-            .mv-btn-dark{
-                background:var(--mv-bosque-900); color:var(--mv-blanco);
-            }
-            .mv-btn-dark:hover{ background:var(--mv-selva-600); }
-            .mv-btn-ghost{
-                background:rgba(255,255,255,.10); border:1px solid rgba(255,255,255,.25); color:#fff;
-            }
-            .mv-btn-ghost:hover{ background:rgba(255,255,255,.18); }
-
-            .mv-card{
-                background:var(--mv-blanco);
-                border:1px solid rgba(15,54,38,.08);
-            }
-            .mv-card:hover{ border-color:rgba(27,107,69,.35); }
-
-            .mv-pill{
-                background:rgba(27,107,69,.10); color:var(--mv-selva-600);
-            }
-            .mv-pill-sol{
-                background:rgba(242,201,76,.18); color:#8a6d16;
-            }
-
-            .mv-input{
-                background:var(--mv-piedra-50);
-                border:1px solid rgba(15,54,38,.14);
-            }
-            .mv-input:focus{
-                outline:none; border-color:var(--mv-selva-500);
-                box-shadow:0 0 0 3px rgba(35,132,83,.18);
-            }
-        </style>
+        @vite(['resources/css/app.css', 'resources/js/app.js', 'resources/css/pages/welcome.css'])
     </head>
     <body class="landing-page antialiased">
         @php

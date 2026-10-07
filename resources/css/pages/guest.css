@@ -1,0 +1,9 @@
+@import '../brand.css';
+
+.mv-cresta {
+    position: absolute;
+    right: 0;
+    bottom: -1px;
+    left: 0;
+    height: 110px;
+}

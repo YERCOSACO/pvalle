@@ -1,0 +1,71 @@
+@import '../brand.css';
+
+[x-cloak] {
+    display: none !important;
+}
+
+.font-eyebrow {
+    font-family: 'Figtree', ui-sans-serif, sans-serif;
+}
+
+body {
+    font-family: 'Plus Jakarta Sans', ui-sans-serif, sans-serif;
+    color: var(--mv-tinta-900);
+    background: var(--mv-piedra-50);
+}
+
+.mv-cresta {
+    position: absolute;
+    right: 0;
+    bottom: -1px;
+    left: 0;
+    height: 120px;
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-position: bottom;
+}
+
+.mv-cresta-watermark {
+    position: absolute;
+    inset: 0;
+    opacity: .06;
+    pointer-events: none;
+}
+
+.mv-btn-dark {
+    background: var(--mv-bosque-900);
+    color: var(--mv-blanco);
+}
+
+.mv-btn-dark:hover {
+    background: var(--mv-selva-600);
+}
+
+.mv-btn-ghost {
+    background: rgba(255, 255, 255, .10);
+    border: 1px solid rgba(255, 255, 255, .25);
+    color: #fff;
+}
+
+.mv-btn-ghost:hover {
+    background: rgba(255, 255, 255, .18);
+}
+
+.mv-card {
+    background: var(--mv-blanco);
+    border: 1px solid rgba(15, 54, 38, .08);
+}
+
+.mv-card:hover {
+    border-color: rgba(27, 107, 69, .35);
+}
+
+.mv-pill {
+    background: rgba(27, 107, 69, .10);
+    color: var(--mv-selva-600);
+}
+
+.mv-pill-sol {
+    background: rgba(242, 201, 76, .18);
+    color: #8a6d16;
+}

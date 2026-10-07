@@ -3,43 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <title>Boleto de viaje {{ $boleto->id }}</title>
-<style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: Arial, Helvetica, sans-serif; background: #f5f5f5; color: #111; font-size: 10px; line-height: 1.25; }
-    .ticket { width: 7cm; min-height: 15cm; margin: 20px auto; background: #fff; padding: 9px; border-radius: 6px; overflow-wrap: anywhere; box-shadow: 0 10px 30px rgba(0,0,0,0.08); }
-    .logo { text-align: center; margin-bottom: 7px; }
-    .logo img { width: 58px; margin-bottom: 2px; }
-    .empresa { font-size: 14px; font-weight: bold; }
-    .slogan { font-size: 8px; color: #444; }
-    .ubicacion { font-size: 8px; color: #444; line-height: 1.3; margin-top: 3px; }
-    .linea { border-top: 1px dashed #000; margin: 7px 0; }
-    .titulo { text-align: center; font-weight: bold; font-size: 12px; margin-bottom: 7px; }
-    .fila { margin-bottom: 5px; }
-    .label { font-size: 8px; color: #555; text-transform: uppercase; }
-    .valor { font-size: 10px; font-weight: bold; color: #111; }
-    .guide { border: 1px solid #555; margin-top: 5px; padding: 6px; }
-    .guide-title { border-bottom: 1px solid #777; font-size: 10px; font-weight: bold; margin-bottom: 5px; padding-bottom: 3px; text-align: center; text-transform: uppercase; }
-    .guide-row { display: flex; gap: 4px; margin: 3px 0; }
-    .guide-row .label { flex: 0 0 31%; }
-    .guide-row .valor { flex: 1; }
-    .highlight { background: #f3f4f6; padding: 7px 6px; border-radius: 5px; margin: 7px 0; text-align: center; }
-    .highlight .label { display: block; }
-    .highlight .valor { font-size: 24px; }
-    .summary { border: 1px solid #111; margin-top: 7px; }
-    .summary-row { display: flex; justify-content: space-between; padding: 4px 6px; gap: 8px; }
-    .summary-row + .summary-row { border-top: 1px solid #bbb; }
-    .summary-total { background: #111; color: #fff; font-size: 13px; font-weight: bold; }
-    .qr { display: block; height: 62px; margin: 8px auto 0; width: 62px; }
-    .footer { text-align: center; font-size: 8px; margin-top: 8px; color: #444; }
-    .btn { text-align: center; margin-top: 10px; }
-    button { padding: 10px 20px; background: #0f172a; color: white; border: none; border-radius: 5px; cursor: pointer; }
-    @media print {
-        body { background: white; }
-        .btn { display: none; }
-        .ticket { width: 7cm; margin: 0; padding: 6px; box-shadow: none; }
-        @page { size: 70mm 170mm; margin: 0; }
-    }
-</style>
+@vite('resources/css/print/travel-ticket.css')
 </head>
 <body>
 <div class="ticket">
@@ -79,7 +43,7 @@
 
     <div class="summary">
         <div class="summary-row"><span>Método de pago</span><strong>{{ $boleto->metodo_pago }}</strong></div>
-        <div class="summary-row"><span>Estado</span><strong style="text-transform: capitalize;">{{ $boleto->estado }}</strong></div>
+        <div class="summary-row"><span>Estado</span><strong class="estado-valor">{{ $boleto->estado }}</strong></div>
         <div class="summary-row summary-total"><span>Total a pagar</span><span>Bs {{ number_format($boleto->precio, 2) }}</span></div>
     </div>
 

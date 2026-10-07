@@ -1,7 +1,5 @@
 <?php
-
 namespace App\Services;
-
 use Illuminate\Support\Facades\Cache;
 
 class ReceptionAvailability
@@ -14,7 +12,6 @@ class ReceptionAvailability
     {
         Cache::put(self::CACHE_KEY, true, now()->addSeconds(self::ACTIVE_WITHIN_SECONDS));
     }
-
     public function isAvailable(): bool
     {
         return Cache::get(self::CACHE_KEY, false) === true;

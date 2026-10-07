@@ -27,7 +27,7 @@
                 </form>
                 <a href="{{ route('transaccional.boletos.create') }}"
                    class="btn-primary">
-                    + Nuevo Boleto
+                    Agregar Boleto
                 </a>
             </div>
         </div>

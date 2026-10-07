@@ -9,22 +9,7 @@
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=fraunces:500,600,700|figtree:400,500,600,700&display=swap" rel="stylesheet" />
         <!-- Scripts -->
-        @vite(['resources/css/app.css', 'resources/js/app.js'])
-        <style>
-            :root{
-                --mv-bosque-900:#0B2A1E; --mv-bosque-800:#0F3626;
-                --mv-selva-600:#1B6B45; --mv-selva-500:#238453;
-                --mv-brote-400:#6FCF64; --mv-brote-300:#9BE28C;
-                --mv-piedra-50:#F6F3E9; --mv-tinta-900:#12241C; --mv-blanco:#FBFAF5;
-            }
-            .font-display{ font-family:'Fraunces', ui-serif, Georgia, serif; }
-            .mv-input{ background:var(--mv-piedra-50); border:1px solid rgba(15,54,38,.14); color:var(--mv-tinta-900); }
-            .mv-input:focus{ outline:none; border-color:var(--mv-selva-500); box-shadow:0 0 0 3px rgba(35,132,83,.18); }
-            .mv-btn-primary{ background:var(--mv-brote-400); color:var(--mv-bosque-900); box-shadow:0 10px 30px -12px rgba(111,207,100,.55); }
-            .mv-btn-primary:hover{ background:var(--mv-brote-300); }
-            .mv-cresta{ position:absolute; left:0; right:0; bottom:-1px; height:110px; }
-            .mv-cresta svg{ width:100%; height:100%; display:block; }
-        </style>
+        @vite(['resources/css/app.css', 'resources/js/app.js', 'resources/css/pages/guest.css'])
     </head>
     <body class="font-sans text-gray-900 antialiased">
         <div class="relative flex min-h-screen flex-col items-center overflow-hidden bg-[var(--mv-bosque-900)] pt-6 sm:justify-center sm:pt-0">

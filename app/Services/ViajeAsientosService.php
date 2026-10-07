@@ -9,24 +9,7 @@ use Illuminate\Validation\ValidationException;
 
 class ViajeAsientosService
 {
-    public function generarNumeros(int $capacidad): array
-    {
-        $asientos = [];
-        $letras = ['A', 'B', 'C', 'D'];
-        $filas = (int) ceil($capacidad / count($letras));
 
-        for ($fila = 1; $fila <= $filas; $fila++) {
-            foreach ($letras as $letra) {
-                if (count($asientos) >= $capacidad) {
-                    return $asientos;
-                }
-
-                $asientos[] = $fila . $letra;
-            }
-        }
-
-        return $asientos;
-    }
 
     public function crearParaViaje(Viaje $viaje): void
     {
@@ -179,5 +162,23 @@ class ViajeAsientosService
             ->where('estado_base', 1)
             ->where('estado', 'disponible')
             ->update(['estado' => 'ocupado']);
+    }
+    public function generarNumeros(int $capacidad): array
+    {
+        $asientos = [];
+        $letras = ['A', 'B', 'C', 'D'];
+        $filas = (int) ceil($capacidad / count($letras));
+
+        for ($fila = 1; $fila <= $filas; $fila++) {
+            foreach ($letras as $letra) {
+                if (count($asientos) >= $capacidad) {
+                    return $asientos;
+                }
+
+                $asientos[] = $fila . $letra;
+            }
+        }
+
+        return $asientos;
     }
 }
