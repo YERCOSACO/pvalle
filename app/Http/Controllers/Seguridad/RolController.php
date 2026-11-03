@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class RolController extends Controller
 {
@@ -13,6 +14,10 @@ class RolController extends Controller
 {
     //3//////////////////////////////////////////
     $this->authorize('roles.ver');
+    $request->validate([
+        'search' => 'sometimes|nullable|string|max:255',
+        'page' => 'sometimes|integer|min:1',
+    ]);
 
     $roles = Role::with('permissions')
                   ->where('estado_base', 1)
@@ -37,13 +42,14 @@ class RolController extends Controller
     {
         $this->authorize('roles.crear');
 
-        $request->validate([
-            'name'     => 'required|unique:roles,name',
-            'permisos' => 'array',
+        $datos = $request->validate([
+            'name' => 'required|string|max:255|unique:roles,name',
+            'permisos' => 'sometimes|array',
+            'permisos.*' => ['required', 'string', 'distinct', Rule::exists('permissions', 'name')->where('guard_name', 'web')],
         ]);
 
-        $rol = Role::create(['name' => $request->name]);
-        $rol->syncPermissions($request->permisos ?? []);
+        $rol = Role::create(['name' => $datos['name']]);
+        $rol->syncPermissions($datos['permisos'] ?? []);
 
         return redirect()->route('seguridad.roles.index')
                          ->with('success', 'Rol creado correctamente.');
@@ -63,13 +69,14 @@ class RolController extends Controller
     {
         $this->authorize('roles.editar');
 
-        $request->validate([
-            'name'     => 'required|unique:roles,name,' . $rol->id,
-            'permisos' => 'array',
+        $datos = $request->validate([
+            'name' => ['required', 'string', 'max:255', Rule::unique('roles', 'name')->ignore($rol)],
+            'permisos' => 'sometimes|array',
+            'permisos.*' => ['required', 'string', 'distinct', Rule::exists('permissions', 'name')->where('guard_name', 'web')],
         ]);
 
-        $rol->update(['name' => $request->name]);
-        $rol->syncPermissions($request->permisos ?? []);
+        $rol->update(['name' => $datos['name']]);
+        $rol->syncPermissions($datos['permisos'] ?? []);
 
         return redirect()->route('seguridad.roles.index')
                          ->with('success', 'Rol actualizado correctamente.');

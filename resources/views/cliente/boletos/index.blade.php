@@ -49,6 +49,7 @@
                                             <p><span class="font-semibold text-[#12241C]">Pasajero:</span> {{ $boleto->nombre_pasajero }}</p>
                                             <p><span class="font-semibold text-[#12241C]">Precio:</span> Bs. {{ number_format($boleto->precio, 2) }}</p>
                                             <p><span class="font-semibold text-[#12241C]">Pago:</span> {{ ucfirst($boleto->metodo_pago) }}</p>
+                                            <x-expiration-countdown :boleto="$boleto" />
                                         </div>
                                     </div>
                                 @endforeach

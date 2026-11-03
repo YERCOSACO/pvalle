@@ -102,6 +102,7 @@ class ApiControllersTest extends TestCase
     {
         $this->createTestData();
         $reserva = Reserva::first();
+        $reserva->update(['cantidad' => 2]);
         $viaje = Viaje::first();
 
         $response = $this->authenticatedPost('/api/boletos', [
@@ -119,6 +120,11 @@ class ApiControllersTest extends TestCase
         $response->assertStatus(201);
         $response->assertJsonPath('success', true);
         $response->assertJsonPath('data.nombre_pasajero', 'Juan Pérez');
+        $response->assertJsonPath('data.precio', 150);
+
+        $boleto = Boleto::where('reserva_id', $reserva->id)->latest('id')->firstOrFail();
+        $this->assertGreaterThan(0, $boleto->segundos_restantes);
+        $this->assertLessThanOrEqual(Boleto::TIEMPO_PAGO_QR_MINUTOS * 60, $boleto->segundos_restantes);
     }
 
     public function test_boleto_api_show(): void
@@ -137,6 +143,13 @@ class ApiControllersTest extends TestCase
         $this->createTestData();
         $boleto = Boleto::first();
 
+        $this->authenticatedPut("/api/boletos/{$boleto->id}", [
+            'nombre_pasajero' => 'María García',
+            'metodo_pago' => 'efectivo',
+            'estado' => 'pendiente',
+        ])->assertUnprocessable()
+            ->assertJsonValidationErrors('estado');
+
         $response = $this->authenticatedPut("/api/boletos/{$boleto->id}", [
             'nombre_pasajero' => 'María García',
             'precio' => 200.00,
@@ -146,6 +159,7 @@ class ApiControllersTest extends TestCase
 
         $response->assertStatus(200);
         $response->assertJsonPath('data.nombre_pasajero', 'María García');
+        $response->assertJsonPath('data.precio', 150);
     }
 
     public function test_boleto_api_destroy(): void
@@ -193,11 +207,150 @@ class ApiControllersTest extends TestCase
             'viaje_id' => $viaje->id,
             'tipo_encomienda_id' => $tipoEncomienda->id,
             'cantidad' => 2,
-            'total_pagar' => 100.00,
+            'total_pagar' => 1.00,
         ]);
 
         $response->assertStatus(201);
         $response->assertJsonPath('data.destinatario_nombre', 'María García');
+        $response->assertJsonPath('data.total_pagar', 100);
+
+        $this->authenticatedPost('/api/encomiendas', [
+            'destinatario_nombre' => 'Excede el máximo',
+            'viaje_id' => $viaje->id,
+            'tipo_encomienda_id' => $tipoEncomienda->id,
+            'cantidad' => 20000,
+            'total_pagar' => 1,
+        ])->assertUnprocessable()
+            ->assertJsonValidationErrors('cantidad');
+
+        $this->authenticatedPost('/api/encomiendas', [
+            'destinatario_nombre' => 'Estado inválido',
+            'viaje_id' => $viaje->id,
+            'tipo_encomienda_id' => $tipoEncomienda->id,
+            'cantidad' => 1,
+            'estado' => 'arbitrary',
+        ])->assertUnprocessable()
+            ->assertJsonValidationErrors('estado');
+    }
+
+    public function test_boleto_api_rejects_cancelled_creation_and_a_reservation_over_its_limit(): void
+    {
+        $this->createTestData();
+        $reserva = Reserva::first();
+        $viaje = Viaje::first();
+
+        $this->authenticatedPost('/api/boletos', [
+            'reserva_id' => $reserva->id,
+            'viaje_id' => $viaje->id,
+            'numero_asiento' => '2A',
+            'nombre_pasajero' => 'Pasajero adicional',
+            'metodo_pago' => 'QR',
+            'estado' => 'cancelado',
+        ])->assertUnprocessable()
+            ->assertJsonValidationErrors('estado');
+
+        $this->authenticatedPost('/api/boletos', [
+            'reserva_id' => $reserva->id,
+            'viaje_id' => $viaje->id,
+            'numero_asiento' => '2A',
+            'nombre_pasajero' => 'Pasajero adicional',
+            'metodo_pago' => 'QR',
+            'estado' => 'pendiente',
+        ])->assertUnprocessable()
+            ->assertJsonValidationErrors('reserva_id');
+
+        $this->authenticatedPost('/api/boletos', [
+            'reserva_id' => $reserva->id,
+            'viaje_id' => $viaje->id,
+            'numero_asiento' => '1',
+            'nombre_pasajero' => 'Asiento no válido',
+            'metodo_pago' => 'QR',
+            'estado' => 'pendiente',
+        ])->assertUnprocessable()
+            ->assertJsonValidationErrors('numero_asiento');
+
+        $this->assertSame(1, Boleto::count());
+
+        $reserva->update(['estado' => 'cancelada']);
+        $this->authenticatedPost('/api/boletos', [
+            'reserva_id' => $reserva->id,
+            'viaje_id' => $viaje->id,
+            'numero_asiento' => '2A',
+            'nombre_pasajero' => 'Reserva cancelada',
+            'metodo_pago' => 'QR',
+            'estado' => 'pendiente',
+        ])->assertUnprocessable()
+            ->assertJsonValidationErrors('reserva_id');
+    }
+
+    public function test_seat_api_rejects_seat_numbers_outside_bus_capacity(): void
+    {
+        $this->createTestData();
+        $viaje = Viaje::first();
+
+        $this->authenticatedPost('/api/asientosviaje', [
+            'viaje_id' => $viaje->id,
+            'numero_asiento' => '11A',
+        ])->assertUnprocessable()
+            ->assertJsonValidationErrors('numero_asiento');
+    }
+
+    public function test_api_list_filters_return_validation_errors_for_malformed_values(): void
+    {
+        $this->authenticatedGet('/api/asientosviaje?estado=unknown')
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('estado');
+
+        $this->authenticatedGet('/api/clientes?search[]=invalid')
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('search');
+    }
+
+    public function test_boleto_api_rejects_a_trip_that_conflicts_with_existing_reservation_tickets(): void
+    {
+        $this->createTestData();
+        $reserva = Reserva::first();
+        $reserva->update(['cantidad' => 2]);
+        $viajeOriginal = Viaje::first();
+        $otroViaje = Viaje::create([
+            'ruta_id' => $viajeOriginal->ruta_id,
+            'bus_id' => $viajeOriginal->bus_id,
+            'fecha_viaje' => now()->addDays(6)->toDateString(),
+            'hora_salida' => '09:00:00',
+            'estado' => 'programado',
+            'estado_base' => 1,
+        ]);
+        AsientoViaje::create([
+            'viaje_id' => $otroViaje->id,
+            'numero_asiento' => '1A',
+            'estado' => 'disponible',
+            'estado_base' => 1,
+        ]);
+
+        $this->authenticatedPost('/api/boletos', [
+            'reserva_id' => $reserva->id,
+            'viaje_id' => $otroViaje->id,
+            'numero_asiento' => '1A',
+            'nombre_pasajero' => 'Pasajero adicional',
+            'metodo_pago' => 'QR',
+            'estado' => 'pendiente',
+        ])->assertUnprocessable()
+            ->assertJsonValidationErrors('viaje_id');
+    }
+
+    public function test_encomienda_api_recalculates_total_when_quantity_changes(): void
+    {
+        $this->createTestData();
+        $encomienda = Encomienda::first();
+
+        $this->authenticatedPut("/api/encomiendas/{$encomienda->id}", [
+            'destinatario_nombre' => 'Pedro López',
+            'cantidad' => 5,
+            'total_pagar' => 1,
+            'estado' => 'en transito',
+        ])->assertOk()
+            ->assertJsonPath('data.total_pagar', 250)
+            ->assertJsonPath('data.estado', 'en transito');
     }
 
     public function test_encomienda_api_show(): void

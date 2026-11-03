@@ -19,7 +19,18 @@
             </div>
 
             <div class="mt-6 rounded-2xl border border-black/10 bg-[#F6F3E9] p-4 text-sm text-[#12241C]/70">
-                Al enviar el comprobante, tus boletos quedan como <strong>Pendiente</strong> de revisión por el administrador o recepcionista.
+                El plazo de pago QR es de <strong>{{ \App\Models\Boleto::TIEMPO_PAGO_QR_MINUTOS }} minutos</strong>. Revisa el vencimiento de cada boleto antes de enviar el comprobante.
+            </div>
+
+            <div class="mt-4 space-y-3">
+                @foreach($boletos as $boleto)
+                    @if($boleto->estado === 'pendiente')
+                        <div class="rounded-xl border border-black/10 bg-white p-4 text-sm text-[#12241C]/70">
+                            <p class="font-semibold text-[#12241C]">Asiento {{ $boleto->numero_asiento }} · Bs {{ number_format((float) $boleto->precio, 2) }}</p>
+                            <x-expiration-countdown :boleto="$boleto" />
+                        </div>
+                    @endif
+                @endforeach
             </div>
 
             <div class="mt-4 rounded-2xl border border-black/10 bg-white p-6 shadow-sm">

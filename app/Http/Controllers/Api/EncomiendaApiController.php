@@ -4,8 +4,11 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Encomienda;
+use App\Models\TipoEncomienda;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use OpenApi\Attributes as OA;
 
 #[OA\Tag(name: "Encomiendas", description: "Gestión de encomiendas")]
@@ -23,7 +26,6 @@ use OpenApi\Attributes as OA;
         new OA\Property(property: "viaje_id", type: "integer", example: 1),
         new OA\Property(property: "tipo_encomienda_id", type: "integer", example: 1),
         new OA\Property(property: "cantidad", type: "integer", example: 1),
-        new OA\Property(property: "total_pagar", type: "number", format: "double", example: 50.00),
         new OA\Property(property: "estado", type: "string", example: "recibido"),
         new OA\Property(property: "estado_base", type: "boolean", example: true),
         new OA\Property(property: "created_at", type: "string", format: "date-time"),
@@ -42,6 +44,11 @@ class EncomiendaApiController extends Controller
     ])]
     public function index(Request $request): JsonResponse
     {
+        $request->validate([
+            'search' => 'sometimes|nullable|string|max:255',
+            'page' => 'sometimes|integer|min:1',
+        ]);
+
         $encomiendas = Encomienda::query()
             ->with(['cliente', 'viaje', 'tipoEncomienda'])
             ->where('estado_base', 1)
@@ -67,7 +74,6 @@ class EncomiendaApiController extends Controller
         new OA\Property(property: "viaje_id", type: "integer", example: 1),
         new OA\Property(property: "tipo_encomienda_id", type: "integer", example: 1),
         new OA\Property(property: "cantidad", type: "integer", example: 1),
-        new OA\Property(property: "total_pagar", type: "number", format: "double", example: 50.00),
     ])), responses: [
         new OA\Response(response: 201, description: "Encomienda creada correctamente"),
         new OA\Response(response: 401, description: "No autenticado"),
@@ -76,20 +82,24 @@ class EncomiendaApiController extends Controller
     public function store(Request $request): JsonResponse
     {
         $data = $request->validate([
-            'cliente_id' => 'nullable|exists:clientes,id',
+            'cliente_id' => ['nullable', 'integer', Rule::exists('clientes', 'id')->where('estado_base', 1)],
             'remitente_nombre' => 'nullable|string|max:255',
             'remitente_ci' => 'nullable|string|max:20',
             'remitente_telefono' => 'nullable|string|max:20',
             'destinatario_nombre' => 'required|string|max:255',
             'destinatario_ci' => 'nullable|string|max:20',
             'destinatario_telefono' => 'nullable|string|max:20',
-            'viaje_id' => 'required|exists:viajes,id',
-            'tipo_encomienda_id' => 'required|exists:tipo_encomiendas,id',
+            'viaje_id' => ['required', 'integer', Rule::exists('viajes', 'id')->where('estado_base', 1)],
+            'tipo_encomienda_id' => ['required', 'integer', Rule::exists('tipo_encomiendas', 'id')->where('estado_base', 1)],
             'cantidad' => 'required|integer|min:1',
-            'total_pagar' => 'nullable|numeric|min:0',
-            'estado' => 'nullable|string',
+            'estado' => 'nullable|in:recibido,en transito,entregado,cancelado',
         ]);
 
+        $tipo = TipoEncomienda::findOrFail($data['tipo_encomienda_id']);
+        $data['total_pagar'] = $this->calcularTotal(
+            $tipo,
+            $data['cantidad']
+        );
         $data['estado_base'] = 1;
         $data['estado'] = $data['estado'] ?? 'recibido';
         $encomienda = Encomienda::create($data);
@@ -122,7 +132,6 @@ class EncomiendaApiController extends Controller
         new OA\Property(property: "destinatario_ci", type: "string", example: "87654321"),
         new OA\Property(property: "destinatario_telefono", type: "string", example: "67890123"),
         new OA\Property(property: "cantidad", type: "integer", example: 1),
-        new OA\Property(property: "total_pagar", type: "number", format: "double", example: 50.00),
         new OA\Property(property: "estado", type: "string", example: "recibido"),
     ])), responses: [
         new OA\Response(response: 200, description: "Encomienda actualizada correctamente"),
@@ -140,10 +149,13 @@ class EncomiendaApiController extends Controller
             'destinatario_ci' => 'nullable|string|max:20',
             'destinatario_telefono' => 'nullable|string|max:20',
             'cantidad' => 'required|integer|min:1',
-            'total_pagar' => 'nullable|numeric|min:0',
-            'estado' => 'nullable|string',
+            'estado' => 'sometimes|in:recibido,en transito,entregado,cancelado',
         ]);
 
+        $data['total_pagar'] = $this->calcularTotal(
+            $encomienda->tipoEncomienda()->firstOrFail(),
+            $data['cantidad']
+        );
         $encomienda->update($data);
 
         return $this->successResponse('Encomienda actualizada correctamente.', $this->formatEncomienda($encomienda));
@@ -185,6 +197,18 @@ class EncomiendaApiController extends Controller
             'message' => $message,
             'data' => $data,
         ], $status);
+    }
+
+    private function calcularTotal(TipoEncomienda $tipo, int $cantidad): float
+    {
+        $total = round((float) $tipo->precio * $cantidad, 2);
+        if ($total > 999999.99) {
+            throw ValidationException::withMessages([
+                'cantidad' => 'El total de la encomienda excede el máximo permitido.',
+            ]);
+        }
+
+        return $total;
     }
 
     private function formatEncomienda(Encomienda $encomienda): array

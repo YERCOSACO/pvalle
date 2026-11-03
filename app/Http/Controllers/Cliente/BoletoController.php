@@ -8,7 +8,6 @@ use App\Models\Boleto;
 use App\Models\Reserva;
 use App\Models\Viaje;
 use App\Services\ViajeAsientosService;
-use App\Services\ReceptionAvailability;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -19,6 +18,19 @@ class BoletoController extends Controller
     public function index(Request $request): View
     {
         $cliente = auth('cliente')->user();
+
+        $viajeIdsConPendientesVencidos = Boleto::query()
+            ->whereHas('reserva', fn ($query) => $query->where('cliente_id', $cliente->id))
+            ->where('estado_base', 1)
+            ->where('estado', 'pendiente')
+            ->whereNotNull('expira_en')
+            ->where('expira_en', '<=', now())
+            ->distinct()
+            ->pluck('viaje_id');
+
+        foreach ($viajeIdsConPendientesVencidos as $viajeId) {
+            $this->asientosService->limpiarExpiradosParaViaje((int) $viajeId);
+        }
 
         $boletos = Boleto::with('viaje.ruta', 'reserva')
             ->whereHas('reserva', function ($query) use ($cliente) {
@@ -37,7 +49,7 @@ class BoletoController extends Controller
     {
     }
 
-    public function create(Reserva $reserva, ReceptionAvailability $availability): View
+    public function create(Reserva $reserva): View
     {
         $cliente = auth('cliente')->user();
         abort_if($reserva->cliente_id !== $cliente->id || $reserva->estado_base !== 1, 404);
@@ -53,7 +65,6 @@ class BoletoController extends Controller
         return view('cliente.boletos.create', [
             'reserva' => $reserva,
             'viajes' => $viajes,
-            'receptionAvailable' => $availability->isAvailable(),
         ]);
     }
 
@@ -63,28 +74,23 @@ class BoletoController extends Controller
 
         $todos = $this->asientosService->todos($viaje->id);
         $ocupados = $this->asientosService->ocupados($viaje->id);
+        $bloqueados = $this->asientosService->bloqueados($viaje->id);
 
         return response()->json([
             'todos' => $todos,
             'ocupados' => $ocupados,
+            'bloqueados' => $bloqueados,
             'precio' => $viaje->ruta->precio_base ?? 0,
         ]);
     }
 
-    public function store(Request $request, ReceptionAvailability $availability)
+    public function store(Request $request)
     {
-        // Revalida recepción antes de registrar los asientos y generar el pago.
-        if (! $availability->isAvailable()) {
-            return back()->withInput()->withErrors([
-                'recepcion' => 'En este momento no podemos procesar reservas en línea. Por favor, llame al ' . config('app.support_phone') . ' para reservar por teléfono.',
-            ]);
-        }
-
-        $request->validate([
+        $data = $request->validate([
             'reserva_id' => 'required|exists:reservas,id',
             'viaje_id' => 'required|exists:viajes,id',
             'numero_asiento' => 'required|array|min:1',
-            'numero_asiento.*' => 'required|string',
+            'numero_asiento.*' => ['required', 'string', 'max:4', 'regex:/^\d{1,3}[A-D]$/i', 'distinct:ignore_case'],
             'tipo_pasajero' => 'required|array|min:1',
             'tipo_pasajero.*' => 'required|in:normal,comodidad,mascota',
             'nombre_pasajero' => 'sometimes|array',
@@ -94,6 +100,21 @@ class BoletoController extends Controller
             'telefono_pasajero' => 'sometimes|array',
             'telefono_pasajero.*' => 'nullable|string|max:50',
             'metodo_pago' => 'required|in:QR',
+        ]);
+
+        foreach (['tipo_pasajero', 'nombre_pasajero', 'ci_pasajero', 'telefono_pasajero'] as $campo) {
+            if (isset($data[$campo]) && array_keys($data[$campo]) !== array_keys($data['numero_asiento'])) {
+                throw \Illuminate\Validation\ValidationException::withMessages([
+                    $campo => 'Debe proporcionar un elemento alineado con cada asiento seleccionado.',
+                ]);
+            }
+        }
+
+        $request->merge([
+            'numero_asiento' => array_map(
+                fn (string $numero): string => strtoupper($numero),
+                $data['numero_asiento']
+            ),
         ]);
 
         $cliente = auth('cliente')->user();
@@ -123,14 +144,21 @@ class BoletoController extends Controller
             return back()->withErrors(['numero_asiento' => 'Debes seleccionar exactamente ' . $reserva->cantidad . ' asiento(s).']);
         }
 
+        $bloqueados = $this->asientosService->bloqueados($viaje->id);
         foreach ($selected as $asiento) {
+            if (in_array($asiento, $bloqueados, true)) {
+                return back()->withErrors(['numero_asiento' => "El asiento {$asiento} está bloqueado y no se puede reservar."])->withInput();
+            }
+
             if (in_array($asiento, $ocupados)) {
                 return back()->withErrors(['numero_asiento' => "El asiento {$asiento} ya está ocupado."]);
             }
         }
 
         $estado = $request->metodo_pago === 'QR' ? 'pendiente' : 'confirmado';
-        $expiraEn = $request->metodo_pago === 'QR' ? Carbon::now()->addMinutes(15) : null;
+        $expiraEn = $request->metodo_pago === 'QR'
+            ? now()->addMinutes(Boleto::TIEMPO_PAGO_QR_MINUTOS)
+            : null;
         $precioBase = $viaje->ruta->precio_base ?? 0;
 
         DB::transaction(function () use ($selected, $request, $reserva, $viaje, $estado, $expiraEn, $precioBase, $cliente) {
@@ -138,13 +166,6 @@ class BoletoController extends Controller
 
             foreach ($request->numero_asiento as $index => $asiento) {
                 $tipo = $request->tipo_pasajero[$index] ?? 'normal';
-                $precioFinal = $precioBase;
-                if ($tipo === 'comodidad') {
-                    $precioFinal += 10;
-                } elseif ($tipo === 'mascota') {
-                    $precioFinal += 15;
-                }
-
                 $nombre = match ($tipo) {
                     'comodidad' => 'Comodidad (espacio extra)',
                     'mascota' => 'Mascota',
@@ -161,6 +182,9 @@ class BoletoController extends Controller
 
                 Boleto::create([
                     'reserva_id' => $reserva->id,
+                    'fecha_emision' => null,
+                    'usuario_id' => null,
+                    'cliente_emisor_id' => $cliente->id,
                     'viaje_id' => $viaje->id,
                     'numero_asiento' => $asiento,
                     'nombre_pasajero' => $nombre,
@@ -168,7 +192,7 @@ class BoletoController extends Controller
                     'telefono_pasajero' => $telefono,
                     'espacio_extra' => $tipo === 'comodidad',
                     'mascota' => $tipo === 'mascota',
-                    'precio' => $precioFinal,
+                    'precio' => $precioBase,
                     'metodo_pago' => $request->metodo_pago,
                     'estado' => $estado,
                     'expira_en' => $expiraEn,
@@ -203,6 +227,7 @@ class BoletoController extends Controller
         $cliente = auth('cliente')->user();
         abort_if($reserva->cliente_id !== $cliente->id || $reserva->estado_base !== 1, 404);
 
+        $this->limpiarBoletosExpirados($reserva);
         $boletos = $reserva->boletos()->with('viaje.ruta')->get();
         $qrImage = asset('images/qr-fake.svg');
         $pendientes = $reserva->boletos()
@@ -219,6 +244,7 @@ class BoletoController extends Controller
         $cliente = auth('cliente')->user();
         abort_if($reserva->cliente_id !== $cliente->id || $reserva->estado_base !== 1, 404);
 
+        $this->limpiarBoletosExpirados($reserva);
         $pendientes = $reserva->boletos()
             ->where('metodo_pago', 'QR')
             ->where('estado', 'pendiente')
@@ -237,6 +263,7 @@ class BoletoController extends Controller
             'comprobante' => 'required|file|mimes:jpg,jpeg,png,pdf|max:5120',
         ]);
 
+        $this->limpiarBoletosExpirados($reserva);
         $pendientes = $reserva->boletos()
             ->where('metodo_pago', 'QR')
             ->where('estado', 'pendiente')
@@ -268,5 +295,19 @@ class BoletoController extends Controller
 
         return redirect()->route('cliente.boletos.qr', $reserva)
                          ->with('success', 'Comprobante enviado. El administrador confirmará tu pago.');
+    }
+
+    private function limpiarBoletosExpirados(Reserva $reserva): void
+    {
+        $viajeIds = $reserva->boletos()
+            ->where('estado_base', 1)
+            ->where('estado', 'pendiente')
+            ->whereNotNull('expira_en')
+            ->pluck('viaje_id')
+            ->unique();
+
+        foreach ($viajeIds as $viajeId) {
+            $this->asientosService->limpiarExpiradosParaViaje((int) $viajeId);
+        }
     }
 }

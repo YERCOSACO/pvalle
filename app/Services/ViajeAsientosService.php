@@ -9,7 +9,31 @@ use Illuminate\Validation\ValidationException;
 
 class ViajeAsientosService
 {
+    public const MAX_CAPACIDAD_BUS = 1000;
 
+    public function liberarVencidos(): int
+    {
+        $viajeIds = Boleto::query()
+            ->where('estado_base', 1)
+            ->where('estado', 'pendiente')
+            ->whereNotNull('expira_en')
+            ->where('expira_en', '<=', now())
+            ->distinct()
+            ->pluck('viaje_id');
+
+        $total = 0;
+
+        foreach ($viajeIds as $viajeId) {
+            $total += $this->liberarBoletosExpirados((int) $viajeId);
+        }
+
+        return $total;
+    }
+
+    public function limpiarExpiradosParaViaje(int $viajeId): int
+    {
+        return $this->liberarBoletosExpirados($viajeId);
+    }
 
     public function crearParaViaje(Viaje $viaje): void
     {
@@ -69,6 +93,17 @@ class ViajeAsientosService
             ->all();
     }
 
+    public function bloqueados(int $viajeId): array
+    {
+        return AsientoViaje::query()
+            ->where('viaje_id', $viajeId)
+            ->where('estado_base', 1)
+            ->where('estado', 'bloqueado')
+            ->orderBy('numero_asiento')
+            ->pluck('numero_asiento')
+            ->all();
+    }
+
     public function reservar(int $viajeId, array $numerosAsiento): void
     {
         $numerosAsiento = array_values(array_unique($numerosAsiento));
@@ -85,6 +120,12 @@ class ViajeAsientosService
 
         foreach ($numerosAsiento as $numeroAsiento) {
             $asiento = $asientos->get($numeroAsiento);
+
+            if ($asiento?->estado === 'bloqueado') {
+                throw ValidationException::withMessages([
+                    'numero_asiento' => "El asiento {$numeroAsiento} está bloqueado y no se puede reservar.",
+                ]);
+            }
 
             if (! $asiento || $asiento->estado !== 'disponible') {
                 throw ValidationException::withMessages([
@@ -108,30 +149,46 @@ class ViajeAsientosService
             ->update(['estado' => 'disponible']);
     }
 
-    private function liberarBoletosExpirados(int $viajeId): void
+    private function liberarBoletosExpirados(int $viajeId): int
     {
-        $numerosExpirados = Boleto::query()
+        $boletosExpirados = Boleto::query()
             ->where('viaje_id', $viajeId)
             ->where('estado_base', 1)
             ->where('estado', 'pendiente')
             ->whereNotNull('expira_en')
             ->where('expira_en', '<=', now())
-            ->pluck('numero_asiento');
+            ->get(['id', 'numero_asiento']);
 
-        if ($numerosExpirados->isEmpty()) {
-            return;
+        if ($boletosExpirados->isEmpty()) {
+            return 0;
         }
 
+        $numerosExpirados = $boletosExpirados->pluck('numero_asiento')->unique();
+        $numerosConBoletoVigente = Boleto::query()
+            ->where('viaje_id', $viajeId)
+            ->where('estado_base', 1)
+            ->whereIn('numero_asiento', $numerosExpirados)
+            ->where(function ($query) {
+                $query->where('estado', 'confirmado')
+                    ->orWhere(function ($query) {
+                        $query->where('estado', 'pendiente')
+                            ->where(function ($query) {
+                                $query->whereNull('expira_en')
+                                    ->orWhere('expira_en', '>', now());
+                            });
+                    });
+            })
+            ->pluck('numero_asiento');
+
+        $asientosParaLiberar = $numerosExpirados->diff($numerosConBoletoVigente);
         AsientoViaje::query()
             ->where('viaje_id', $viajeId)
-            ->whereIn('numero_asiento', $numerosExpirados)
+            ->whereIn('numero_asiento', $asientosParaLiberar)
             ->where('estado', 'ocupado')
             ->update(['estado' => 'disponible']);
 
-        Boleto::query()
-            ->where('viaje_id', $viajeId)
-            ->whereIn('numero_asiento', $numerosExpirados)
-            ->where('estado', 'pendiente')
+        return Boleto::query()
+            ->whereIn('id', $boletosExpirados->pluck('id'))
             ->update(['estado' => 'cancelado', 'estado_base' => 0]);
     }
 
@@ -165,6 +222,12 @@ class ViajeAsientosService
     }
     public function generarNumeros(int $capacidad): array
     {
+        if ($capacidad < 1 || $capacidad > self::MAX_CAPACIDAD_BUS) {
+            throw new \InvalidArgumentException(
+                'La capacidad del bus debe estar entre 1 y ' . self::MAX_CAPACIDAD_BUS . ' asientos.'
+            );
+        }
+
         $asientos = [];
         $letras = ['A', 'B', 'C', 'D'];
         $filas = (int) ceil($capacidad / count($letras));

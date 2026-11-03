@@ -7,12 +7,17 @@ use App\Models\Reserva;
 use App\Models\Cliente;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 
 class ReservaController extends Controller
 {
     public function index(Request $request)
     {
         $this->authorize('reservas.ver');
+        $request->validate([
+            'search' => 'sometimes|nullable|string|max:255',
+            'page' => 'sometimes|integer|min:1',
+        ]);
 
         $reservas = Reserva::with('cliente', 'boletos')
                             ->where('estado_base', 1)
@@ -42,16 +47,16 @@ class ReservaController extends Controller
     {
         $this->authorize('reservas.crear');
 
-        $request->validate([
-            'cliente_id' => 'required|exists:clientes,id',
+        $datos = $request->validate([
+            'cliente_id' => ['required', 'integer', Rule::exists('clientes', 'id')->where('estado_base', 1)],
             'cantidad'   => 'required|integer|min:1',
         ]);
 
-        DB::transaction(function () use ($request) {
+        DB::transaction(function () use ($datos) {
             Reserva::create([
-                'cliente_id'    => $request->cliente_id,
+                'cliente_id'    => $datos['cliente_id'],
                 'fecha_reserva' => now(),
-                'cantidad'      => $request->cantidad,
+                'cantidad'      => $datos['cantidad'],
                 'estado'        => 'pendiente',
             ]);
         });
@@ -73,14 +78,14 @@ class ReservaController extends Controller
     {
         $this->authorize('reservas.editar');
 
-        $request->validate([
-            'cliente_id' => 'required|exists:clientes,id',
+        $datos = $request->validate([
+            'cliente_id' => ['required', 'integer', Rule::exists('clientes', 'id')->where('estado_base', 1)],
             'cantidad'   => 'required|integer|min:1',
             'estado'     => 'required|in:pendiente,confirmada,cancelada',
         ]);
 
-        DB::transaction(function () use ($reserva, $request) {
-            $reserva->update($request->only('cliente_id', 'cantidad', 'estado'));
+        DB::transaction(function () use ($reserva, $datos) {
+            $reserva->update($datos);
         });
 
         return redirect()->route('transaccional.reservas.index')

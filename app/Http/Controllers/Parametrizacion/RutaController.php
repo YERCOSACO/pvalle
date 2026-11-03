@@ -11,6 +11,10 @@ class RutaController extends Controller
     public function index(Request $request)
     {
     $this->authorize('rutas.ver');
+    $request->validate([
+        'search' => 'sometimes|nullable|string|max:255',
+        'page' => 'sometimes|integer|min:1',
+    ]);
 
     $rutas = Ruta::where('estado_base', 1)
                   ->when($request->search, function ($query, $search) {
@@ -36,14 +40,14 @@ class RutaController extends Controller
     {
         $this->authorize('rutas.crear');
 
-        $request->validate([
+        $datos = $request->validate([
             'origen'       => 'required|string|max:255',
             'destino'      => 'required|string|max:255',
-            'distancia_km' => 'nullable|numeric|min:0',
-            'precio_base'  => 'required|numeric|min:0',
+            'distancia_km' => 'nullable|numeric|between:0,999999.99|decimal:0,2',
+            'precio_base'  => 'required|numeric|between:0,999999.99|decimal:0,2',
         ]);
 
-        Ruta::create($request->only('origen', 'destino', 'distancia_km', 'precio_base'));
+        Ruta::create($datos);
 
         return redirect()->route('parametrizacion.rutas.index')
                          ->with('success', 'Ruta creada correctamente.');
@@ -60,14 +64,14 @@ class RutaController extends Controller
     {
         $this->authorize('rutas.editar');
 
-        $request->validate([
+        $datos = $request->validate([
             'origen'       => 'required|string|max:255',
             'destino'      => 'required|string|max:255',
-            'distancia_km' => 'nullable|numeric|min:0',
-            'precio_base'  => 'required|numeric|min:0',
+            'distancia_km' => 'nullable|numeric|between:0,999999.99|decimal:0,2',
+            'precio_base'  => 'required|numeric|between:0,999999.99|decimal:0,2',
         ]);
 
-        $ruta->update($request->only('origen', 'destino', 'distancia_km', 'precio_base'));
+        $ruta->update($datos);
 
         return redirect()->route('parametrizacion.rutas.index')
                          ->with('success', 'Ruta actualizada correctamente.');

@@ -36,7 +36,7 @@
             @endif
 
             {{-- Resumen --}}
-            <div class="grid grid-cols-4 gap-4 mb-6">
+            <div class="grid grid-cols-2 gap-4 mb-6 sm:grid-cols-3 lg:grid-cols-5">
                 <div class="bg-white rounded-xl shadow p-4 text-center">
                     <p class="text-3xl font-bold text-gray-800">{{ $totalAsientos }}</p>
                     <p class="text-xs text-gray-500 mt-1">Total asientos</p>
@@ -48,6 +48,10 @@
                 <div class="bg-white rounded-xl shadow p-4 text-center">
                     <p class="text-3xl font-bold text-rose-600">{{ $totalOcupados }}</p>
                     <p class="text-xs text-gray-500 mt-1">Ocupados</p>
+                </div>
+                <div class="bg-white rounded-xl shadow p-4 text-center">
+                    <p class="text-3xl font-bold text-slate-600">{{ $totalBloqueados }}</p>
+                    <p class="text-xs text-gray-500 mt-1">Bloqueados</p>
                 </div>
                 <div class="bg-white rounded-xl shadow p-4 text-center">
                     <p class="text-3xl font-bold text-indigo-600">{{ $porcentaje }}%</p>
@@ -70,6 +74,9 @@
                         <span class="flex items-center gap-2">
                             <span class="w-4 h-4 bg-yellow-400 rounded"></span> Pendiente QR
                         </span>
+                        <span class="flex items-center gap-2">
+                            <span class="w-4 h-4 bg-slate-400 rounded"></span> Bloqueado
+                        </span>
                     </div>
 
                     <div class="mx-auto w-fit bg-slate-50 border-4 border-slate-300 rounded-3xl p-6">
@@ -89,7 +96,10 @@
                                         @foreach(array_slice($fila, 0, 2) as $numero)
                                             @php
                                                 $b = $boletos[$numero] ?? null;
-                                                if (!$b) {
+                                                $estadoAsiento = $asientos->firstWhere('numero_asiento', $numero)?->estado;
+                                                if ($estadoAsiento === 'bloqueado') {
+                                                    $color = 'bg-slate-400 border-slate-600';
+                                                } elseif (!$b) {
                                                     $color = 'bg-emerald-500 border-emerald-700';
                                                 } elseif ($b->estado === 'confirmado') {
                                                     $color = 'bg-rose-500 border-rose-700';
@@ -103,7 +113,7 @@
                                                         {{ explode(' ', $b->nombre_pasajero)[0] }}
                                                     </span>
                                                     @if($b->estado === 'pendiente')
-                                                        <span class="text-xs text-yellow-600 font-bold mb-1">⏱ {{ $b->minutos_restantes }}m</span>
+                                                        <span class="text-xs text-yellow-600 font-bold mb-1">{{ $b->expira_en?->timezone(config('app.display_timezone'))->format('H:i:s') }} · {{ $b->minutos_restantes }}m</span>
                                                     @endif
                                                     <a href="{{ route('transaccional.boletos.edit', $b) }}"
                                                        class="w-14 h-14 {{ $color }} border-b-4 rounded-xl text-white text-xs font-bold flex items-center justify-center shadow-md hover:scale-105 transition-transform"
@@ -127,7 +137,10 @@
                                         @foreach(array_slice($fila, 2, 2) as $numero)
                                             @php
                                                 $b = $boletos[$numero] ?? null;
-                                                if (!$b) {
+                                                $estadoAsiento = $asientos->firstWhere('numero_asiento', $numero)?->estado;
+                                                if ($estadoAsiento === 'bloqueado') {
+                                                    $color = 'bg-slate-400 border-slate-600';
+                                                } elseif (!$b) {
                                                     $color = 'bg-emerald-500 border-emerald-700';
                                                 } elseif ($b->estado === 'confirmado') {
                                                     $color = 'bg-rose-500 border-rose-700';
@@ -201,9 +214,7 @@
                                                 @if($b->mascota) · 🐾 @endif
                                             </p>
                                             @if($b->estado === 'pendiente' && $b->expira_en)
-                                                <p class="text-xs text-yellow-600 font-semibold mt-0.5">
-                                                    ⏱ Expira en {{ $b->minutos_restantes }} min
-                                                </p>
+                                                <x-expiration-countdown :boleto="$b" />
                                             @endif
                                         </div>
                                     </div>

@@ -43,6 +43,10 @@ class TipoEncomiendaApiController extends Controller
     ])]
     public function index(Request $request): JsonResponse
     {
+        $request->validate([
+            'search' => 'sometimes|nullable|string|max:255',
+            'page' => 'sometimes|integer|min:1',
+        ]);
         $tipos = TipoEncomienda::query()
             ->activos()
             ->when($request->search, fn ($query, $search) => $query->where('nombre', 'like', "%{$search}%"))
@@ -70,8 +74,8 @@ class TipoEncomiendaApiController extends Controller
     {
         $data = $request->validate([
             'nombre' => 'required|string|max:255',
-            'descripcion' => 'nullable|string',
-            'precio' => 'required|numeric|min:0',
+            'descripcion' => 'nullable|string|max:255',
+            'precio' => 'required|numeric|between:0,999999.99|decimal:0,2',
         ]);
 
         $tipo = TipoEncomienda::create($data);
@@ -115,8 +119,8 @@ class TipoEncomiendaApiController extends Controller
     {
         $data = $request->validate([
             'nombre' => 'required|string|max:255',
-            'descripcion' => 'nullable|string',
-            'precio' => 'required|numeric|min:0',
+            'descripcion' => 'nullable|string|max:255',
+            'precio' => 'required|numeric|between:0,999999.99|decimal:0,2',
         ]);
 
         $tipoencomienda->update($data);

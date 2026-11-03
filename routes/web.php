@@ -15,7 +15,6 @@ use App\Http\Controllers\Cliente\BoletoController as ClienteBoletoController;
 use App\Http\Controllers\Cliente\EncomiendaController as ClienteEncomiendaController;
 use App\Http\Controllers\Cliente\NotificacionController as ClienteNotificacionController;
 use App\Http\Controllers\Auth\ClienteAuthController;
-use App\Http\Controllers\ReceptionPresenceController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Transaccional\ViajeController;
 use App\Http\Controllers\Transaccional\AsignacionConductorController;
@@ -25,6 +24,12 @@ use App\Http\Controllers\Transaccional\NotificacionController;
 use App\Http\Controllers\Parametrizacion\AsientoViajeController;
 use App\Http\Controllers\Transaccional\ReservaController;
 use App\Http\Controllers\Transaccional\BoletoController;
+use App\Http\Controllers\Reporte\ReporteBoletoController;
+use App\Http\Controllers\Reporte\ReporteEncomiendaController;
+use App\Http\Controllers\Reporte\ReporteViajeController;
+use App\Http\Controllers\Estadisticas\EstadisticaEncomiendaController;
+use App\Http\Controllers\Estadisticas\EstadisticaIngresoController;
+use App\Http\Controllers\Estadisticas\EstadisticaViajeRutaController;
 use App\Models\Viaje;
 Route::get('/', function () {
      $viajesProximos = Viaje::with('ruta')
@@ -86,9 +91,13 @@ Route::middleware(['auth', 'verified'])->prefix('parametrizacion')->name('parame
     Route::resource('tipoincidencias', TipoIncidenciaController::class)->parameters(['tipoincidencias' => 'tipoIncidencia'])->except(['show']);
     Route::get('asientoviaje/{asientoviaje}/imprimir', [AsientoViajeController::class, 'imprimir'])
          ->name('asientoviaje.imprimir');
+    Route::get('asientoviaje/gestion', [AsientoViajeController::class, 'gestion'])
+         ->name('asientoviaje.gestion');
+    Route::get('asientoviaje/viaje/{viaje}/maqueta', [AsientoViajeController::class, 'viaje'])
+         ->name('asientoviaje.viaje');
     Route::resource('asientoviaje', AsientoViajeController::class)
          ->parameters(['asientoviaje' => 'asientoviaje'])
-         ->only(['index', 'show', 'edit', 'update']);
+         ->only(['index', 'create', 'store', 'show', 'edit', 'update', 'destroy']);
 });
 Route::middleware(['auth', 'verified'])->prefix('transaccional')->name('transaccional.')->group(function () {
 
@@ -110,14 +119,22 @@ Route::middleware(['auth', 'verified'])->prefix('transaccional')->name('transacc
          ->name('boletos.confirmar-pago');
     // ── RESOURCE DE BOLETOS (Irá después de las rutas GET) ──────────
     Route::resource('boletos', BoletoController::class)->parameters(['boletos' => 'boleto'])->except(['show']);
+    Route::get('boletos/{boleto}/imprimir', [BoletoController::class, 'imprimir'])
+         ->name('boletos.imprimir');
     Route::get('encomiendas/{encomienda}/imprimir', [EncomiendaController::class, 'imprimir'])
          ->name('encomiendas.imprimir');
 });
 
-Route::get('transaccional/boletos/{boleto}/imprimir', [BoletoController::class, 'imprimir'])->name('transaccional.boletos.imprimir');
-
-Route::middleware(['auth', 'verified'])->post('recepcion/presencia', [ReceptionPresenceController::class, 'heartbeat'])
-     ->name('recepcion.presencia');
+Route::middleware(['auth', 'verified'])->prefix('reportes')->name('reporte.')->group(function () {
+    Route::get('boletos', [ReporteBoletoController::class, 'index'])->name('boletos');
+    Route::get('viajes', [ReporteViajeController::class, 'index'])->name('viajes');
+    Route::get('encomiendas', [ReporteEncomiendaController::class, 'index'])->name('encomiendas');
+});
+Route::middleware(['auth', 'verified'])->prefix('estadisticas')->name('estadisticas.')->group(function () {
+    Route::get('ingresos', [EstadisticaIngresoController::class, 'index'])->name('ingresos');
+    Route::get('viajes-ruta', [EstadisticaViajeRutaController::class, 'index'])->name('viajes-ruta');
+    Route::get('encomiendas', [EstadisticaEncomiendaController::class, 'index'])->name('encomiendas');
+});
 
 Route::middleware('guest:cliente')->name('cliente.')->group(function () {
     Route::get('cliente/register', [ClienteAuthController::class, 'showRegistrationForm'])
@@ -131,8 +148,6 @@ Route::middleware('guest:cliente')->name('cliente.')->group(function () {
 });
 
 Route::middleware('auth:cliente')->name('cliente.')->group(function () {
-    Route::get('cliente/recepcion/disponibilidad', [ReceptionPresenceController::class, 'status'])
-         ->name('recepcion.disponibilidad');
     Route::get('cliente/dashboard', [DashboardController::class, 'index'])
          ->name('dashboard');
     Route::resource('cliente/reservas', ClienteReservaController::class)

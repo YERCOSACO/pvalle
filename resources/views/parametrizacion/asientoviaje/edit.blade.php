@@ -9,6 +9,9 @@
         <div class="bg-white shadow rounded-lg p-6">
             <form method="POST" action="{{ route('parametrizacion.asientoviaje.update', $asientoviaje) }}">
                 @csrf @method('PUT')
+                @if($volverGestion)
+                    <input type="hidden" name="return_to" value="{{ $returnTo }}">
+                @endif
                 @include('parametrizacion.asientoviaje._form')
             </form>
         </div>

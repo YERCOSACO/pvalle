@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\IncidenciaViaje;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use OpenApi\Attributes as OA;
 
 #[OA\Tag(name: "Incidencias de Viaje", description: "Gestión de incidencias de viaje")]
@@ -35,6 +36,10 @@ class IncidenciaViajeApiController extends Controller
     ])]
     public function index(Request $request): JsonResponse
     {
+        $request->validate([
+            'viaje_id' => 'sometimes|nullable|integer|exists:viajes,id',
+            'page' => 'sometimes|integer|min:1',
+        ]);
         $incidencias = IncidenciaViaje::query()
             ->with(['viaje', 'tipoIncidencia'])
             ->where('estado_base', 1)
@@ -62,11 +67,11 @@ class IncidenciaViajeApiController extends Controller
     public function store(Request $request): JsonResponse
     {
         $data = $request->validate([
-            'viaje_id' => 'required|exists:viajes,id',
-            'tipo_incidencia_id' => 'required|exists:tipo_incidencias,id',
+            'viaje_id' => ['required', 'integer', Rule::exists('viajes', 'id')->where('estado_base', 1)],
+            'tipo_incidencia_id' => ['required', 'integer', Rule::exists('tipo_incidencias', 'id')->where('estado_base', 1)],
             'fecha_inicio' => 'required|date',
             'fecha_fin' => 'nullable|date|after_or_equal:fecha_inicio',
-            'descripcion_detalle' => 'nullable|string',
+            'descripcion_detalle' => 'nullable|string|max:16000',
         ]);
 
         $data['estado_base'] = 1;
@@ -107,11 +112,11 @@ class IncidenciaViajeApiController extends Controller
     public function update(Request $request, IncidenciaViaje $incidenciaviaje): JsonResponse
     {
         $data = $request->validate([
-            'viaje_id' => 'required|exists:viajes,id',
-            'tipo_incidencia_id' => 'required|exists:tipo_incidencias,id',
+            'viaje_id' => ['required', 'integer', Rule::exists('viajes', 'id')->where('estado_base', 1)],
+            'tipo_incidencia_id' => ['required', 'integer', Rule::exists('tipo_incidencias', 'id')->where('estado_base', 1)],
             'fecha_inicio' => 'required|date',
             'fecha_fin' => 'nullable|date|after_or_equal:fecha_inicio',
-            'descripcion_detalle' => 'nullable|string',
+            'descripcion_detalle' => 'nullable|string|max:16000',
         ]);
 
         $incidenciaviaje->update($data);

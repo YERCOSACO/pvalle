@@ -11,6 +11,10 @@ class ConductorController extends Controller
     public function index(Request $request)
     {
     $this->authorize('conductores.ver');
+    $request->validate([
+        'search' => 'sometimes|nullable|string|max:255',
+        'page' => 'sometimes|integer|min:1',
+    ]);
 
     $conductores = Conductor::where('estado_base', 1)
                              ->when($request->search, function ($query, $search) {
@@ -37,14 +41,14 @@ class ConductorController extends Controller
     {
         $this->authorize('conductores.crear');
 
-        $request->validate([
+        $datos = $request->validate([
             'nombre'   => 'required|string|max:255',
             'apellido' => 'required|string|max:255',
-            'licencia' => 'required|string|unique:conductores,licencia',
+            'licencia' => 'required|string|max:255|unique:conductores,licencia',
             'telefono' => 'nullable|string|max:20',
         ]);
 
-        Conductor::create($request->only('nombre', 'apellido', 'licencia', 'telefono'));
+        Conductor::create($datos);
 
         return redirect()->route('parametrizacion.conductores.index')
                          ->with('success', 'Conductor creado correctamente.');
@@ -61,14 +65,14 @@ class ConductorController extends Controller
     {
         $this->authorize('conductores.editar');
 
-        $request->validate([
+        $datos = $request->validate([
             'nombre'   => 'required|string|max:255',
             'apellido' => 'required|string|max:255',
-            'licencia' => 'required|string|unique:conductores,licencia,' . $conductor->id,
+            'licencia' => 'required|string|max:255|unique:conductores,licencia,' . $conductor->id,
             'telefono' => 'nullable|string|max:20',
         ]);
 
-        $conductor->update($request->only('nombre', 'apellido', 'licencia', 'telefono'));
+        $conductor->update($datos);
 
         return redirect()->route('parametrizacion.conductores.index')
                          ->with('success', 'Conductor actualizado correctamente.');

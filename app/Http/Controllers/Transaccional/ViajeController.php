@@ -8,6 +8,7 @@ use App\Models\Bus;
 use App\Models\Ruta;
 use App\Services\ViajeAsientosService;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class ViajeController extends Controller
 {
@@ -18,6 +19,10 @@ class ViajeController extends Controller
     public function index(Request $request)
 {
     $this->authorize('viajes.ver');
+    $request->validate([
+        'search' => 'sometimes|nullable|string|max:255',
+        'page' => 'sometimes|integer|min:1',
+    ]);
 
     $viajes = Viaje::with('ruta', 'bus')
                     ->where('estado_base', 1)
@@ -47,15 +52,15 @@ class ViajeController extends Controller
 {
     $this->authorize('viajes.crear');
 
-    $request->validate([
-        'ruta_id'     => 'required|exists:rutas,id',
-        'bus_id'      => 'required|exists:buses,id',
-        'fecha_viaje' => 'required|date',
-        'hora_salida' => 'required',
+    $datos = $request->validate([
+        'ruta_id'     => ['required', 'integer', Rule::exists('rutas', 'id')->where('estado_base', 1)],
+        'bus_id'      => ['required', 'integer', Rule::exists('buses', 'id')->where('estado_base', 1)],
+        'fecha_viaje' => 'required|date_format:Y-m-d',
+        'hora_salida' => 'required|date_format:H:i,H:i:s',
     ]);
 
-    DB::transaction(function () use ($request) {
-        $viaje = Viaje::create($request->only('ruta_id', 'bus_id', 'fecha_viaje', 'hora_salida'));
+    DB::transaction(function () use ($datos) {
+        $viaje = Viaje::create($datos);
 
         $this->asientosService->crearParaViaje($viaje);
     });
@@ -78,16 +83,16 @@ class ViajeController extends Controller
     {
         $this->authorize('viajes.editar');
 
-        $request->validate([
-            'ruta_id'     => 'required|exists:rutas,id',
-            'bus_id'      => 'required|exists:buses,id',
-            'fecha_viaje' => 'required|date',
-            'hora_salida' => 'required',
-            'estado'      => 'required|in:programado,en curso,finalizado,cancelado',
+        $datos = $request->validate([
+            'ruta_id'     => ['required', 'integer', Rule::exists('rutas', 'id')->where('estado_base', 1)],
+            'bus_id'      => ['required', 'integer', Rule::exists('buses', 'id')->where('estado_base', 1)],
+            'fecha_viaje' => 'required|date_format:Y-m-d',
+            'hora_salida' => 'required|date_format:H:i,H:i:s',
+            'estado'      => 'required|in:programado,en curso,retrasado,finalizado,cancelado',
         ]);
 
-        DB::transaction(function () use ($viaje, $request) {
-            $viaje->update($request->only('ruta_id', 'bus_id', 'fecha_viaje', 'hora_salida', 'estado'));
+        DB::transaction(function () use ($viaje, $datos) {
+            $viaje->update($datos);
         });
 
         return redirect()->route('transaccional.viajes.index')

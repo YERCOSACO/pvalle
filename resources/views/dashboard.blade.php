@@ -47,9 +47,20 @@
             ],
             [
                 'nombre' => 'REPORTES',
-                'descripcion' => 'Realiza reportes de viajes,asientos y mas.',
+                'descripcion' => 'Consulta e imprime reportes de boletos, viajes y encomiendas.',
                 'items' => [
-                    ['nombre' => 'REPORTE ASIENTO_VIAJE', 'ruta' => 'parametrizacion.asientoviaje.index', 'permiso' => 'asientoviaje.ver'],
+                    ['nombre' => 'REPORTE DE BOLETOS', 'ruta' => 'reporte.boletos', 'permiso' => 'reportes.ver'],
+                    ['nombre' => 'REPORTE DE VIAJES', 'ruta' => 'reporte.viajes', 'permiso' => 'reportes.ver'],
+                    ['nombre' => 'REPORTE DE ENCOMIENDAS', 'ruta' => 'reporte.encomiendas', 'permiso' => 'reportes.ver'],
+                ],
+            ],
+            [
+                'nombre' => 'ESTADISTICA',
+                'descripcion' => 'Consulta gráficas mensuales de ventas, viajes y encomiendas.',
+                'items' => [
+                    ['nombre' => 'INGRESOS POR BOLETOS', 'ruta' => 'estadisticas.ingresos', 'permiso' => 'estadisticas.ver'],
+                    ['nombre' => 'VIAJES POR RUTAS', 'ruta' => 'estadisticas.viajes-ruta', 'permiso' => 'estadisticas.ver'],
+                    ['nombre' => 'ENCOMIENDAS', 'ruta' => 'estadisticas.encomiendas', 'permiso' => 'estadisticas.ver'],
                 ],
             ],
         ];

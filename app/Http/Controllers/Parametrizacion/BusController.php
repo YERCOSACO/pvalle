@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Parametrizacion;
 
 use App\Http\Controllers\Controller;
 use App\Models\Bus;
+use App\Services\ViajeAsientosService;
 use Illuminate\Http\Request;
 
 class BusController extends Controller
@@ -11,6 +12,10 @@ class BusController extends Controller
     public function index(Request $request)
     {
     $this->authorize('buses.ver');
+    $request->validate([
+        'search' => 'sometimes|nullable|string|max:255',
+        'page' => 'sometimes|integer|min:1',
+    ]);
 
     $buses = Bus::where('estado_base', 1)
                  ->when($request->search, function ($query, $search) {
@@ -37,8 +42,8 @@ class BusController extends Controller
         $this->authorize('buses.crear');
 
         $request->validate([
-            'placa'      => 'required|string|unique:buses,placa',
-            'capacidad'  => 'required|integer|min:1',
+            'placa'      => 'required|string|max:255|unique:buses,placa',
+            'capacidad'  => 'required|integer|min:1|max:' . ViajeAsientosService::MAX_CAPACIDAD_BUS,
             'modelo'     => 'nullable|string|max:255',
             'tipo_bus'   => 'nullable|string|max:255',
         ]);
@@ -61,8 +66,8 @@ class BusController extends Controller
         $this->authorize('buses.editar');
 
         $request->validate([
-            'placa'      => 'required|string|unique:buses,placa,' . $bus->id,
-            'capacidad'  => 'required|integer|min:1',
+            'placa'      => 'required|string|max:255|unique:buses,placa,' . $bus->id,
+            'capacidad'  => 'required|integer|min:1|max:' . ViajeAsientosService::MAX_CAPACIDAD_BUS,
             'modelo'     => 'nullable|string|max:255',
             'tipo_bus'   => 'nullable|string|max:255',
         ]);

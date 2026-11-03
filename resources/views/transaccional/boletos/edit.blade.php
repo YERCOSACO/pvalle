@@ -26,10 +26,8 @@
             </div>
 
             @if($boleto->estado === 'pendiente' && $boleto->expira_en)
-                <div class="bg-yellow-50 border border-yellow-300 text-yellow-700 rounded-lg p-3 text-sm mb-4">
-                    ⏱️ Este boleto expira en <strong>{{ $boleto->minutos_restantes }} minutos</strong>
-                    ({{ $boleto->expira_en->format('H:i') }})
-
+                <div class="mb-4">
+                    <x-expiration-countdown :boleto="$boleto" />
                     <form method="POST" action="{{ route('transaccional.boletos.confirmar-pago', $boleto) }}" class="inline ml-3">
                         @csrf @method('PATCH')
                         <button class="btn-warning btn-sm">

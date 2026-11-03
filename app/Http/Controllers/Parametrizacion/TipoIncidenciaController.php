@@ -11,6 +11,10 @@ class TipoIncidenciaController extends Controller
     public function index(Request $request)
     {
     $this->authorize('tipoincidencias.ver');
+    $request->validate([
+        'search' => 'sometimes|nullable|string|max:255',
+        'page' => 'sometimes|integer|min:1',
+    ]);
 
     $tipoIncidencias = TipoIncidencia::where('estado_base', 1)
                                       ->when($request->search, function ($query, $search) {
@@ -32,13 +36,13 @@ class TipoIncidenciaController extends Controller
     {
         $this->authorize('tipoincidencias.crear');
 
-        $request->validate([
+        $datos = $request->validate([
             'nombre'         => 'required|string|max:255',
-            'descripcion'    => 'nullable|string',
-            'nivel_gravedad' => 'required|string|max:50',
+            'descripcion'    => 'nullable|string|max:255',
+            'nivel_gravedad' => 'required|in:Leve,Moderado,Grave',
         ]);
 
-        TipoIncidencia::create($request->only('nombre', 'descripcion', 'nivel_gravedad'));
+        TipoIncidencia::create($datos);
 
         return redirect()->route('parametrizacion.tipoincidencias.index')
                          ->with('success', 'Tipo de incidencia creado correctamente.');
@@ -55,13 +59,13 @@ class TipoIncidenciaController extends Controller
     {
         $this->authorize('tipoincidencias.editar');
 
-        $request->validate([
+        $datos = $request->validate([
             'nombre'         => 'required|string|max:255',
-            'descripcion'    => 'nullable|string',
-            'nivel_gravedad' => 'required|string|max:50',
+            'descripcion'    => 'nullable|string|max:255',
+            'nivel_gravedad' => 'required|in:Leve,Moderado,Grave',
         ]);
 
-        $tipoIncidencia->update($request->only('nombre', 'descripcion', 'nivel_gravedad'));
+        $tipoIncidencia->update($datos);
 
         return redirect()->route('parametrizacion.tipoincidencias.index')
                          ->with('success', 'Tipo de incidencia actualizado correctamente.');

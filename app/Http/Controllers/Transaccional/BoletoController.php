@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Models\Boleto;
 use App\Models\Reserva;
 use App\Models\Viaje;
-use App\Models\Bus;
 use App\Models\AsientoViaje;
 use App\Services\ViajeAsientosService;
 use Illuminate\Http\Request;
@@ -16,10 +15,6 @@ use Carbon\Carbon;
 
 class BoletoController extends Controller
 {
-    // ── Recargos por tipo de pasajero ──────────────────────────
-    private const RECARGO_COMODIDAD = 10;
-    private const RECARGO_MASCOTA   = 15;
-
     // ── Calcula asientos ocupados en un viaje ──────────────────
     public function __construct(private ViajeAsientosService $asientosService)
     {
@@ -28,6 +23,9 @@ class BoletoController extends Controller
     public function index(Request $request)
     {
         $this->authorize('boletos.ver');
+        $request->validate([
+            'search' => 'sometimes|nullable|string|max:255',
+        ]);
 
         // Busca el viaje más próximo/reciente activo
         $viaje = Viaje::conConductorAsignado()
@@ -85,11 +83,13 @@ class BoletoController extends Controller
 
     $todos = $this->asientosService->todos($viaje->id);
     $ocupados = $this->asientosService->ocupados($viaje->id);
+    $bloqueados = $this->asientosService->bloqueados($viaje->id);
     $disponibles = $this->asientosService->disponibles($viaje->id);
 
     return response()->json([
         'disponibles' => $disponibles,
         'ocupados'    => $ocupados,
+        'bloqueados'  => $bloqueados,
         'todos'       => $todos,
         'precio'      => $viaje->ruta->precio_base,
     ]);
@@ -99,12 +99,12 @@ class BoletoController extends Controller
 {
     $this->authorize('boletos.crear');
 
-    $request->validate([
+    $data = $request->validate([
         'reserva_id'          => 'required|exists:reservas,id',
         'viaje_id'            => 'required|exists:viajes,id',
         'numero_asiento'      => 'required|array|min:1',
-        'numero_asiento.*'    => 'required|string',
-        'tipo_pasajero'       => 'required|array',
+        'numero_asiento.*'    => ['required', 'string', 'max:4', 'regex:/^\d{1,3}[A-D]$/i', 'distinct:ignore_case'],
+        'tipo_pasajero'       => 'required|array|min:1',
         'tipo_pasajero.*'     => 'required|in:normal,comodidad,mascota',
         'nombre_pasajero'     => 'nullable|array',
         'nombre_pasajero.*'   => 'nullable|string|max:255',
@@ -112,11 +112,30 @@ class BoletoController extends Controller
         'ci_pasajero.*'       => 'nullable|string|max:20',
         'telefono_pasajero'   => 'nullable|array',
         'telefono_pasajero.*' => 'nullable|string|max:20',
-        'precio'              => 'required|numeric|min:0',
         'metodo_pago'         => 'required|in:QR,efectivo,tarjeta',
     ]);
 
-DB::transaction(function () use ($request) {
+    foreach (['tipo_pasajero', 'nombre_pasajero', 'ci_pasajero', 'telefono_pasajero'] as $campo) {
+        if (isset($data[$campo]) && array_keys($data[$campo]) !== array_keys($data['numero_asiento'])) {
+            throw ValidationException::withMessages([
+                $campo => 'Debe proporcionar un elemento alineado con cada asiento seleccionado.',
+            ]);
+        }
+    }
+    $numeroAsientos = array_map(
+        fn (string $numero): string => strtoupper($numero),
+        $data['numero_asiento']
+    );
+    $request->merge(['numero_asiento' => $numeroAsientos]);
+    foreach ($data['tipo_pasajero'] as $indice => $tipo) {
+        if ($tipo === 'normal' && blank($data['nombre_pasajero'][$indice] ?? null)) {
+            throw ValidationException::withMessages([
+                "nombre_pasajero.{$indice}" => 'El nombre del pasajero es obligatorio para un boleto normal.',
+            ]);
+        }
+    }
+
+DB::transaction(function () use ($request, $numeroAsientos) {
     $viaje = Viaje::with('ruta')->findOrFail($request->viaje_id);
     $reserva = Reserva::with('cliente')->findOrFail($request->reserva_id);
     $tieneBoletos = $reserva->boletos()
@@ -130,21 +149,24 @@ DB::transaction(function () use ($request) {
         ]);
     }
 
+    if (count($numeroAsientos) > (int) $reserva->cantidad) {
+        throw ValidationException::withMessages([
+            'numero_asiento' => 'La cantidad de asientos no puede superar los ' . $reserva->cantidad . ' solicitados en la reserva.',
+        ]);
+    }
+
     $this->asientosService->reservar($request->viaje_id, $request->numero_asiento);
     $estado = $request->metodo_pago === 'QR' ? 'pendiente' : 'confirmado';
-    $expiraEn = $request->metodo_pago === 'QR' ? Carbon::now()->addMinutes(15) : null;
+    $expiraEn = $request->metodo_pago === 'QR'
+        ? now()->addMinutes(Boleto::TIEMPO_PAGO_QR_MINUTOS)
+        : null;
     $primerBoleto = null;
     $asientosSeleccionados = [];
 
     foreach ($request->numero_asiento as $i => $asiento) {
         $tipo = $request->tipo_pasajero[$i];
 
-        $precioFinal = $viaje->ruta->precio_base;
-        if ($tipo === 'comodidad') {
-            $precioFinal += self::RECARGO_COMODIDAD;
-        } elseif ($tipo === 'mascota') {
-            $precioFinal += self::RECARGO_MASCOTA;
-        }
+        $precioBase = $viaje->ruta->precio_base;
 
         $nombre = match ($tipo) {
             'comodidad' => 'Comodidad (espacio extra)',
@@ -159,12 +181,15 @@ DB::transaction(function () use ($request) {
             ],
             [
                 'reserva_id'        => $request->reserva_id,
+                'fecha_emision'     => $estado === 'confirmado' ? now() : null,
+                'usuario_id'        => $estado === 'confirmado' ? $request->user()->getAuthIdentifier() : null,
+                'cliente_emisor_id' => null,
                 'nombre_pasajero'   => $nombre,
                 'ci_pasajero'       => $request->ci_pasajero[$i] ?? null,
                 'telefono_pasajero' => $request->telefono_pasajero[$i] ?? null,
                 'espacio_extra'     => $tipo === 'comodidad',
                 'mascota'           => $tipo === 'mascota',
-                'precio'            => $precioFinal,
+                'precio'            => $precioBase,
                 'metodo_pago'       => $request->metodo_pago,
                 'estado'            => $estado,
                 'expira_en'         => $expiraEn,
@@ -206,7 +231,7 @@ DB::transaction(function () use ($request) {
     }
 });
     $mensaje = $request->metodo_pago === 'QR'
-        ? 'Boleto(s) creado(s). Tienes 15 minutos para completar el pago por QR.'
+        ? 'Boleto(s) creado(s). Tienes ' . Boleto::TIEMPO_PAGO_QR_MINUTOS . ' minutos para completar el pago por QR.'
         : 'Boleto(s) registrado(s) y confirmado(s) correctamente.';
 
     return redirect()->route('transaccional.boletos.index')->with('success', $mensaje);
@@ -219,12 +244,17 @@ DB::transaction(function () use ($request) {
             return back()->withErrors(['error' => 'Solo se pueden confirmar boletos pendientes.']);
         }
         if ($boleto->esta_expirado) {
-            return back()->withErrors(['error' => 'Este boleto expiró. Ya no se puede confirmar.']);
+            $this->asientosService->limpiarExpiradosParaViaje($boleto->viaje_id);
+
+            return back()->withErrors(['error' => 'Este boleto venció y su asiento fue liberado. Ya no se puede confirmar.']);
         }
         DB::transaction(function () use ($boleto) {
             $boleto->update([
                 'estado'    => 'confirmado',
                 'expira_en' => null,
+                'fecha_emision' => now(),
+                'usuario_id' => auth()->id(),
+                'cliente_emisor_id' => null,
             ]);
             $boleto->load('reserva.cliente', 'viaje.ruta');
             if ($boleto->reserva) {
@@ -269,6 +299,11 @@ DB::transaction(function () use ($request) {
             'tipo_pasajero'     => 'required|in:normal,comodidad,mascota',
             'estado'            => 'required|in:pendiente,confirmado,cancelado',
         ]);
+        if ($boleto->estado === 'pendiente' && $boleto->esta_expirado) {
+            $this->asientosService->limpiarExpiradosParaViaje($boleto->viaje_id);
+
+            return back()->withErrors(['estado' => 'El boleto venció y su asiento fue liberado; ya no se puede modificar ni confirmar.']);
+        }
         $estadoAnterior = $boleto->estado;
         $nombre = match ($request->tipo_pasajero) {
             'comodidad' => 'Comodidad (espacio extra)',
@@ -276,13 +311,18 @@ DB::transaction(function () use ($request) {
             default     => $request->nombre_pasajero,
         };
         DB::transaction(function () use ($boleto, $request, $nombre, $estadoAnterior) {
+            $estadoNuevo = $request->estado;
+            $confirmadoAhora = $estadoNuevo === 'confirmado' && $estadoAnterior !== 'confirmado';
             $boleto->update([
                 'nombre_pasajero'   => $nombre,
                 'ci_pasajero'       => $request->ci_pasajero,
                 'telefono_pasajero' => $request->telefono_pasajero,
                 'espacio_extra'     => $request->tipo_pasajero === 'comodidad',
                 'mascota'           => $request->tipo_pasajero === 'mascota',
-                'estado'            => $request->estado,
+                'estado'            => $estadoNuevo,
+                'fecha_emision'     => $confirmadoAhora ? now() : ($estadoNuevo === 'pendiente' ? null : $boleto->fecha_emision),
+                'usuario_id'        => $confirmadoAhora ? auth()->id() : ($estadoNuevo === 'pendiente' ? null : $boleto->usuario_id),
+                'cliente_emisor_id' => $confirmadoAhora ? null : $boleto->cliente_emisor_id,
             ]);
 
             if ($estadoAnterior !== 'cancelado' && $boleto->estado === 'cancelado') {
@@ -335,6 +375,7 @@ DB::transaction(function () use ($request) {
 {
     $this->authorize('boletos.ver');
 
+    $this->asientosService->limpiarExpiradosParaViaje($viaje->id);
     $viaje->load('ruta', 'bus');
     $viajesDisponibles = Viaje::with('ruta', 'bus')
         ->reservables()
@@ -352,6 +393,7 @@ DB::transaction(function () use ($request) {
         $estadosAsientos = $asientos->mapWithKeys(
             fn (AsientoViaje $asiento) => [strtoupper(trim($asiento->numero_asiento)) => $asiento->estado]
         );
+        $totalBloqueados = $asientos->where('estado', 'bloqueado')->count();
 
     // Mostrar boletos activos del viaje para distinguir confirmados y pendientes.
     $boletos = Boleto::where('viaje_id', $viaje->id)
@@ -363,13 +405,14 @@ DB::transaction(function () use ($request) {
                       ]);
 
     $totalAsientos    = count($todos);
-        $totalOcupados    = count($this->asientosService->ocupados($viaje->id));
-    $totalDisponibles = $totalAsientos - $totalOcupados;
-    $porcentaje       = $totalAsientos > 0 ? round(($totalOcupados / $totalAsientos) * 100) : 0;
+        $asientosOcupados = array_diff($this->asientosService->ocupados($viaje->id), $this->asientosService->bloqueados($viaje->id));
+        $totalOcupados    = count($asientosOcupados);
+        $totalDisponibles = count($this->asientosService->disponibles($viaje->id));
+        $porcentaje       = $totalAsientos > 0 ? round(($totalOcupados / $totalAsientos) * 100) : 0;
 
     return view('transaccional.boletos.show', compact(
         'viaje', 'todos', 'boletos', 'estadosAsientos',
-        'totalAsientos', 'totalOcupados', 'totalDisponibles', 'porcentaje',
+        'totalAsientos', 'totalOcupados', 'totalDisponibles', 'totalBloqueados', 'porcentaje',
         'viajesDisponibles'
     ));
 }
@@ -378,9 +421,10 @@ public function imprimir(Boleto $boleto)
     $boleto->load([
         'viaje.ruta',
         'viaje.bus',
-        'reserva'
+        'reserva.cliente',
+        'usuario',
+        'clienteEmisor',
     ]);
-
     return view('transaccional.boletos.imprimir', compact('boleto'));
 }
 }

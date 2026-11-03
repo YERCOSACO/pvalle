@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\AsignacionConductor;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use OpenApi\Attributes as OA;
 
 #[OA\Tag(name: "Asignaciones de Conductor", description: "Gestión de asignaciones de conductores a viajes")]
@@ -34,6 +35,11 @@ class AsignacionConductorApiController extends Controller
     ])]
     public function index(Request $request): JsonResponse
     {
+        $request->validate([
+            'viaje_id' => 'sometimes|nullable|integer|exists:viajes,id',
+            'conductor_id' => 'sometimes|nullable|integer|exists:conductores,id',
+            'page' => 'sometimes|integer|min:1',
+        ]);
         $asignaciones = AsignacionConductor::query()
             ->with(['viaje', 'conductor'])
             ->where('estado_base', 1)
@@ -62,9 +68,9 @@ class AsignacionConductorApiController extends Controller
     public function store(Request $request): JsonResponse
     {
         $data = $request->validate([
-            'viaje_id' => 'required|exists:viajes,id',
-            'conductor_id' => 'required|exists:conductores,id',
-            'tipo_asignacion' => 'required|string',
+            'viaje_id' => ['required', 'integer', Rule::exists('viajes', 'id')->where('estado_base', 1)],
+            'conductor_id' => ['required', 'integer', Rule::exists('conductores', 'id')->where('estado_base', 1)],
+            'tipo_asignacion' => 'required|string|in:principal,Principal,relevo,Relevo,ayudante,Ayudante|max:10',
         ]);
 
         $data['estado_base'] = 1;
@@ -103,9 +109,9 @@ class AsignacionConductorApiController extends Controller
     public function update(Request $request, AsignacionConductor $asignacionconductor): JsonResponse
     {
         $data = $request->validate([
-            'viaje_id' => 'required|exists:viajes,id',
-            'conductor_id' => 'required|exists:conductores,id',
-            'tipo_asignacion' => 'required|string',
+            'viaje_id' => ['required', 'integer', Rule::exists('viajes', 'id')->where('estado_base', 1)],
+            'conductor_id' => ['required', 'integer', Rule::exists('conductores', 'id')->where('estado_base', 1)],
+            'tipo_asignacion' => 'required|string|in:principal,Principal,relevo,Relevo,ayudante,Ayudante|max:10',
         ]);
 
         $asignacionconductor->update($data);

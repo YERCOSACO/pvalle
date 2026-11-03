@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Bus;
+use App\Services\ViajeAsientosService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use OpenApi\Attributes as OA;
@@ -64,6 +65,10 @@ class BusApiController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
+        $request->validate([
+            'search' => 'sometimes|nullable|string|max:255',
+            'page' => 'sometimes|integer|min:1',
+        ]);
         $buses = Bus::query()
             ->activos()
             ->when($request->search, function ($query, $search) {
@@ -122,7 +127,7 @@ class BusApiController extends Controller
     {
         $data = $request->validate([
             'placa' => 'required|string|max:255|unique:buses,placa',
-            'capacidad' => 'required|integer|min:1',
+            'capacidad' => 'required|integer|min:1|max:' . ViajeAsientosService::MAX_CAPACIDAD_BUS,
             'modelo' => 'nullable|string|max:255',
             'tipo_bus' => 'nullable|string|max:255',
         ]);
@@ -208,7 +213,7 @@ class BusApiController extends Controller
     {
         $data = $request->validate([
             'placa' => 'required|string|max:255|unique:buses,placa,' . $bus->id,
-            'capacidad' => 'required|integer|min:1',
+            'capacidad' => 'required|integer|min:1|max:' . ViajeAsientosService::MAX_CAPACIDAD_BUS,
             'modelo' => 'nullable|string|max:255',
             'tipo_bus' => 'nullable|string|max:255',
         ]);

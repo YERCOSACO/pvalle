@@ -8,9 +8,10 @@
 <body>
     @php
         $total = $asientos->count();
-        $ocupados = $asientos->whereIn('estado', ['ocupado', 'bloqueado'])->count();
+        $ocupados = $asientos->where('estado', 'ocupado')->count();
+        $bloqueados = $asientos->where('estado', 'bloqueado')->count();
         $pendientes = $boletos->where('estado', 'pendiente')->count();
-        $disponibles = max(0, $total - $ocupados);
+        $disponibles = $asientos->where('estado', 'disponible')->count();
         $totalGenerado = $boletos->where('estado', 'confirmado')->sum('precio');
     @endphp
 
@@ -51,6 +52,7 @@
                 <div><strong>{{ $total }}</strong><span>Total asientos</span></div>
                 <div><strong>{{ $disponibles }}</strong><span>Disponibles</span></div>
                 <div><strong>{{ $ocupados }}</strong><span>Ocupados</span></div>
+                <div><strong>{{ $bloqueados }}</strong><span>Bloqueados</span></div>
                 <div><strong>Bs {{ number_format($totalGenerado, 2) }}</strong><span>Total generado</span></div>
             </section>
         </section>
@@ -100,5 +102,12 @@
             <button type="button" class="btn-tabla" onclick="window.print()">IMPRIMIR</button>
         </div>
     </main>
+    @if ($autoPrint)
+        <script>
+            window.addEventListener('load', () => {
+                window.setTimeout(() => window.print(), 300);
+            });
+        </script>
+    @endif
 </body>
 </html>

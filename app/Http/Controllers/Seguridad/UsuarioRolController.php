@@ -6,12 +6,17 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use Spatie\Permission\Models\Role;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class UsuarioRolController extends Controller
 {
     public function index(Request $request)
     {
     $this->authorize('usuarios.ver');
+    $request->validate([
+        'search' => 'sometimes|nullable|string|max:255',
+        'page' => 'sometimes|integer|min:1',
+    ]);
 
     $usuarios = User::with('roles')
                      ->where('estado_base', 1)
@@ -39,16 +44,16 @@ class UsuarioRolController extends Controller
     {
         $this->authorize('usuarios.editar');
 
-        $request->validate([
-            'usuario_id' => 'required|exists:users,id',
-            'rol'        => 'required|exists:roles,name',
+        $datos = $request->validate([
+            'usuario_id' => ['required', 'integer', Rule::exists('users', 'id')->where('estado_base', 1)],
+            'rol'        => ['required', 'string', Rule::exists('roles', 'name')->where('estado_base', 1)->where('guard_name', 'web')],
         ]);
 
-        $usuario = User::where('id', $request->usuario_id)
+        $usuario = User::where('id', $datos['usuario_id'])
                         ->where('estado_base', 1)
                         ->firstOrFail();
 
-        $rol = Role::where('name', $request->rol)
+        $rol = Role::where('name', $datos['rol'])
                     ->where('estado_base', 1)
                     ->firstOrFail();
 
@@ -72,11 +77,11 @@ class UsuarioRolController extends Controller
     {
         $this->authorize('usuarios.editar');
 
-        $request->validate([
-            'rol' => 'required|exists:roles,name',
+        $datos = $request->validate([
+            'rol' => ['required', 'string', Rule::exists('roles', 'name')->where('estado_base', 1)->where('guard_name', 'web')],
         ]);
 
-        $rol = Role::where('name', $request->rol)
+        $rol = Role::where('name', $datos['rol'])
                     ->where('estado_base', 1)
                     ->firstOrFail();
 

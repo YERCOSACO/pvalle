@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Reserva;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use OpenApi\Attributes as OA;
 
 #[OA\Tag(name: "Reservas", description: "Gestión de reservas")]
@@ -45,6 +46,10 @@ class ReservaApiController extends Controller
     ])]
     public function index(Request $request): JsonResponse
     {
+        $request->validate([
+            'search' => 'sometimes|nullable|string|max:255',
+            'page' => 'sometimes|integer|min:1',
+        ]);
         $reservas = Reserva::query()
             ->with('cliente')
             ->activos()
@@ -77,7 +82,7 @@ class ReservaApiController extends Controller
     public function store(Request $request): JsonResponse
     {
         $data = $request->validate([
-            'cliente_id' => 'required|exists:clientes,id',
+            'cliente_id' => ['required', 'integer', Rule::exists('clientes', 'id')->where('estado_base', 1)],
             'cantidad' => 'required|integer|min:1',
             'estado' => 'nullable|in:pendiente,confirmada,cancelada',
         ]);
@@ -130,7 +135,7 @@ class ReservaApiController extends Controller
     public function update(Request $request, Reserva $reserva): JsonResponse
     {
         $data = $request->validate([
-            'cliente_id' => 'required|exists:clientes,id',
+            'cliente_id' => ['required', 'integer', Rule::exists('clientes', 'id')->where('estado_base', 1)],
             'cantidad' => 'required|integer|min:1',
             'estado' => 'required|in:pendiente,confirmada,cancelada',
         ]);

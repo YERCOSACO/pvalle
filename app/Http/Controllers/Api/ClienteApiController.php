@@ -70,6 +70,10 @@ class ClienteApiController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
+        $request->validate([
+            'search' => 'sometimes|nullable|string|max:255',
+            'page' => 'sometimes|integer|min:1',
+        ]);
         $clientes = Cliente::query()
             ->activos()
             ->when($request->search, function ($query, $search) {

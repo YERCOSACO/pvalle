@@ -43,6 +43,10 @@ class TipoIncidenciaApiController extends Controller
     ])]
     public function index(Request $request): JsonResponse
     {
+        $request->validate([
+            'search' => 'sometimes|nullable|string|max:255',
+            'page' => 'sometimes|integer|min:1',
+        ]);
         $tipos = TipoIncidencia::query()
             ->activos()
             ->when($request->search, fn ($query, $search) => $query->where('nombre', 'like', "%{$search}%"))
@@ -70,8 +74,8 @@ class TipoIncidenciaApiController extends Controller
     {
         $data = $request->validate([
             'nombre' => 'required|string|max:255',
-            'descripcion' => 'nullable|string',
-            'nivel_gravedad' => 'required|string|max:50',
+            'descripcion' => 'nullable|string|max:255',
+            'nivel_gravedad' => 'required|in:Leve,Moderado,Grave',
         ]);
 
         $tipo = TipoIncidencia::create($data);
@@ -115,8 +119,8 @@ class TipoIncidenciaApiController extends Controller
     {
         $data = $request->validate([
             'nombre' => 'required|string|max:255',
-            'descripcion' => 'nullable|string',
-            'nivel_gravedad' => 'required|string|max:50',
+            'descripcion' => 'nullable|string|max:255',
+            'nivel_gravedad' => 'required|in:Leve,Moderado,Grave',
         ]);
 
         $tipoincidencia->update($data);

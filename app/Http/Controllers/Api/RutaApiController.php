@@ -58,6 +58,10 @@ class RutaApiController extends Controller
     )]
     public function index(Request $request): JsonResponse
     {
+        $request->validate([
+            'search' => 'sometimes|nullable|string|max:255',
+            'page' => 'sometimes|integer|min:1',
+        ]);
         $rutas = Ruta::query()
             ->activos()
             ->when($request->search, function ($query, $search) {
@@ -105,8 +109,8 @@ class RutaApiController extends Controller
         $data = $request->validate([
             'origen' => 'required|string|max:255',
             'destino' => 'required|string|max:255',
-            'distancia_km' => 'nullable|numeric|min:0',
-            'precio_base' => 'required|numeric|min:0',
+            'distancia_km' => 'nullable|numeric|between:0,999999.99|decimal:0,2',
+            'precio_base' => 'required|numeric|between:0,999999.99|decimal:0,2',
         ]);
 
         $ruta = Ruta::create($data);
@@ -173,8 +177,8 @@ class RutaApiController extends Controller
         $data = $request->validate([
             'origen' => 'required|string|max:255',
             'destino' => 'required|string|max:255',
-            'distancia_km' => 'nullable|numeric|min:0',
-            'precio_base' => 'required|numeric|min:0',
+            'distancia_km' => 'nullable|numeric|between:0,999999.99|decimal:0,2',
+            'precio_base' => 'required|numeric|between:0,999999.99|decimal:0,2',
         ]);
 
         $ruta->update($data);

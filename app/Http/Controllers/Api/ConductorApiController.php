@@ -65,6 +65,10 @@ class ConductorApiController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
+        $request->validate([
+            'search' => 'sometimes|nullable|string|max:255',
+            'page' => 'sometimes|integer|min:1',
+        ]);
         $conductores = Conductor::query()
             ->activos()
             ->when($request->search, function ($query, $search) {

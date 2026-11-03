@@ -27,6 +27,36 @@
         <div class="guide-row"><div class="label">Teléfono</div><div class="valor">{{ $boleto->telefono_pasajero ?? '—' }}</div></div>
     </div>
 
+    <div class="guide">
+        <div class="guide-title">Confirmación del boleto</div>
+        <div class="guide-row">
+            <div class="label">Cliente</div>
+            <div class="valor">{{ $boleto->reserva?->cliente?->nombre_completo ?? 'No disponible' }}</div>
+        </div>
+        <div class="guide-row">
+            <div class="label">Confirmado por</div>
+            <div class="valor">
+                @if ($boleto->estado !== 'confirmado')
+                    Pendiente de confirmación
+                @elseif ($boleto->usuario)
+                    {{ $boleto->usuario->name }}
+                @else
+                    Responsable no registrado
+                @endif
+            </div>
+        </div>
+        <div class="guide-row">
+            <div class="label">Fecha y hora</div>
+            <div class="valor">
+                @if ($boleto->estado === 'confirmado' && $boleto->fecha_emision)
+                    {{ $boleto->fecha_emision->timezone(config('app.display_timezone'))->format('d/m/Y H:i:s') }}
+                @else
+                    Aún no confirmado
+                @endif
+            </div>
+        </div>
+    </div>
+
     <div class="linea"></div>
     <div class="guide">
         <div class="guide-title">Datos del viaje</div>
@@ -44,6 +74,9 @@
     <div class="summary">
         <div class="summary-row"><span>Método de pago</span><strong>{{ $boleto->metodo_pago }}</strong></div>
         <div class="summary-row"><span>Estado</span><strong class="estado-valor">{{ $boleto->estado }}</strong></div>
+        @if($boleto->estado === 'pendiente' && $boleto->expira_en)
+            <div class="summary-row"><span>Vence</span><strong>{{ $boleto->expira_en->timezone(config('app.display_timezone'))->format('d/m/Y H:i:s') }}</strong></div>
+        @endif
         <div class="summary-row summary-total"><span>Total a pagar</span><span>Bs {{ number_format($boleto->precio, 2) }}</span></div>
     </div>
 

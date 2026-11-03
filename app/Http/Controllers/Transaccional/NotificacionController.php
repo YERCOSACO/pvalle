@@ -10,12 +10,17 @@ use App\Models\Encomienda;
 use App\Models\Boleto;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 
 class NotificacionController extends Controller
 {
     public function index(Request $request)
     {
         $this->authorize('notificaciones.ver');
+        $request->validate([
+            'search' => 'sometimes|nullable|string|max:255',
+            'page' => 'sometimes|integer|min:1',
+        ]);
 
         $notificaciones = Notificacion::with('cliente', 'referenciable')
                                        ->where('estado_base', 1)
@@ -49,16 +54,28 @@ class NotificacionController extends Controller
     {
         $this->authorize('notificaciones.crear');
 
-        $request->validate([
-            'cliente_id'         => 'required|exists:clientes,id',
+        $datos = $request->validate([
+            'cliente_id'         => ['required', 'integer', Rule::exists('clientes', 'id')->where('estado_base', 1)],
             'titulo'             => 'required|string|max:255',
-            'mensaje'            => 'required|string',
+            'mensaje'            => 'required|string|max:5000',
             'tipo'               => 'required|in:info,alerta,urgente',
             'canal'              => 'required|in:sistema,email,sms',
             'prioridad'          => 'required|in:baja,normal,alta',
-            'origen_tipo'        => 'nullable|in:incidencia,encomienda,boleto',
-            'origen_id'          => 'nullable|integer',
+            'origen_tipo'        => 'nullable|required_with:origen_id|in:incidencia,encomienda,boleto',
+            'origen_id'          => 'nullable|required_with:origen_tipo|integer',
         ]);
+
+        $origenTabla = match ($request->origen_tipo) {
+            'incidencia' => 'incidencia_viajes',
+            'encomienda' => 'encomiendas',
+            'boleto' => 'boletos',
+            default => null,
+        };
+        if ($origenTabla) {
+            $request->validate([
+                'origen_id' => ['required', 'integer', Rule::exists($origenTabla, 'id')->where('estado_base', 1)],
+            ]);
+        }
 
         $referenciableType = match ($request->origen_tipo) {
             'incidencia' => IncidenciaViaje::class,
@@ -67,16 +84,16 @@ class NotificacionController extends Controller
             default      => null,
         };
 
-        DB::transaction(function () use ($request, $referenciableType) {
+        DB::transaction(function () use ($request, $datos, $referenciableType) {
             Notificacion::create([
-                'cliente_id'         => $request->cliente_id,
-                'titulo'             => $request->titulo,
-                'mensaje'            => $request->mensaje,
-                'tipo'               => $request->tipo,
-                'canal'              => $request->canal,
-                'prioridad'          => $request->prioridad,
+                'cliente_id'         => $datos['cliente_id'],
+                'titulo'             => $datos['titulo'],
+                'mensaje'            => $datos['mensaje'],
+                'tipo'               => $datos['tipo'],
+                'canal'              => $datos['canal'],
+                'prioridad'          => $datos['prioridad'],
                 'fecha_envio'        => now(),
-                'referenciable_id'   => $referenciableType ? $request->origen_id : null,
+                'referenciable_id'   => $referenciableType ? $datos['origen_id'] : null,
                 'referenciable_type' => $referenciableType,
                 'estado'             => 'enviada',
             ]);
@@ -99,16 +116,16 @@ class NotificacionController extends Controller
     {
         $this->authorize('notificaciones.editar');
 
-        $request->validate([
+        $datos = $request->validate([
             'titulo'    => 'required|string|max:255',
-            'mensaje'   => 'required|string',
+            'mensaje'   => 'required|string|max:5000',
             'tipo'      => 'required|in:info,alerta,urgente',
             'prioridad' => 'required|in:baja,normal,alta',
             'estado'    => 'required|in:pendiente,enviada,leida',
         ]);
 
-        DB::transaction(function () use ($notificacion, $request) {
-            $notificacion->update($request->only('titulo', 'mensaje', 'tipo', 'prioridad', 'estado'));
+        DB::transaction(function () use ($notificacion, $datos) {
+            $notificacion->update($datos);
         });
 
         return redirect()->route('transaccional.notificaciones.index')

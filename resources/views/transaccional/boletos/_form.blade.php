@@ -4,6 +4,7 @@
     asientosSeleccionados: [],
     todosAsientos: [],
     asientosOcupados: [],
+    asientosBloqueados: [],
     metodoPago: 'QR',
     precio: '',
     cargando: false,
@@ -30,10 +31,15 @@
         return this.asientosOcupados.includes(asiento);
     },
 
+    estaBloqueado(asiento) {
+        return this.asientosBloqueados.includes(asiento);
+    },
+
     cargarAsientos() {
         if (!this.viajeId) {
             this.todosAsientos = [];
             this.asientosOcupados = [];
+            this.asientosBloqueados = [];
             this.precio = '';
             this.asientosSeleccionados = [];
             return;
@@ -45,6 +51,7 @@
             .then(data => {
                 this.todosAsientos = data.todos;
                 this.asientosOcupados = data.ocupados;
+                this.asientosBloqueados = data.bloqueados;
                 this.precio = data.precio;
                 this.cargando = false;
             });
@@ -128,6 +135,9 @@
                     <span class="w-4 h-4 bg-rose-500 rounded inline-block"></span> Ocupado
                 </span>
                 <span class="flex items-center gap-1">
+                    <span class="w-4 h-4 bg-slate-400 rounded inline-block"></span> Bloqueado
+                </span>
+                <span class="flex items-center gap-1">
                     <span class="w-4 h-4 bg-indigo-600 rounded inline-block"></span> Seleccionado
                 </span>
             </div>
@@ -148,8 +158,9 @@
                                         :disabled="estaOcupado(asiento)"
                                         :class="{
                                             'bg-indigo-600 border-indigo-800 scale-110 ring-2 ring-indigo-300': estaSeleccionado(asiento),
-                                            'bg-emerald-500 border-emerald-700 hover:scale-110 cursor-pointer': !estaOcupado(asiento) && !estaSeleccionado(asiento),
-                                            'bg-rose-500 border-rose-700 cursor-not-allowed opacity-70': estaOcupado(asiento)
+                                        'bg-slate-400 border-slate-600 cursor-not-allowed opacity-80': estaBloqueado(asiento),
+                                        'bg-rose-500 border-rose-700 cursor-not-allowed opacity-70': estaOcupado(asiento) && !estaBloqueado(asiento),
+                                        'bg-emerald-500 border-emerald-700 hover:scale-110 cursor-pointer': !estaOcupado(asiento) && !estaBloqueado(asiento) && !estaSeleccionado(asiento)
                                         }"
                                         class="w-11 h-11 rounded-lg border-b-4 text-white text-xs font-bold transition-all duration-150">
                                         <span x-text="asiento"></span>
@@ -187,7 +198,7 @@
             <span>Total a pagar:</span>
             <span x-text="precio ? 'Bs ' + (parseFloat(precio) * asientosSeleccionados.length).toFixed(2) : '—'"></span>
         </div>
-        <input type="hidden" name="precio" :value="precio">
+        <p class="mt-2 text-xs text-gray-500">La tarifa es fija por asiento y no cambia por comodidad o mascota.</p>
     </div>
 
     {{-- Método de pago --}}
@@ -201,7 +212,7 @@
         </select>
         <div x-show="metodoPago === 'QR'"
              class="mt-2 bg-yellow-50 border border-yellow-300 text-yellow-700 rounded-lg p-3 text-sm">
-            Al elegir QR, el boleto queda en estado <strong>Pendiente</strong> por <strong>15 minutos</strong>.
+            Al elegir QR, el boleto queda en estado <strong>Pendiente</strong> por <strong>{{ \App\Models\Boleto::TIEMPO_PAGO_QR_MINUTOS }} minutos</strong>.
             Si no se confirma el pago en ese tiempo, el asiento se libera automáticamente.
         </div>
     </div>
@@ -221,7 +232,7 @@
 
                 </p>
 
-                {{-- Tipo de pasajero: normal / comodidad / mascota (define el recargo en el servidor) --}}
+                {{-- Tipo de pasajero solo identifica la necesidad del asiento; no modifica la tarifa. --}}
                 <div class="mb-3 pb-3 border-b border-gray-100">
                     <label class="block text-sm font-medium text-gray-700 mb-1">
                         Tipo de pasajero
@@ -295,6 +306,10 @@
         <div>
             <span class="text-gray-500">Método de pago</span>
             <p class="font-medium">{{ $boleto->metodo_pago }}</p>
+        </div>
+        <div>
+            <span class="text-gray-500">Precio registrado</span>
+            <p class="font-medium">Bs {{ number_format((float) $boleto->precio, 2) }}</p>
         </div>
     </div>
 

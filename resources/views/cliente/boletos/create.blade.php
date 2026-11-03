@@ -5,26 +5,15 @@
             <p class="mt-2 text-sm text-[#12241C]/60">Elige los asientos para tu reserva y genera el QR de pago.</p>
         </div>
 
-        <div data-reception-gate
-             data-available="{{ $receptionAvailable ? 'true' : 'false' }}"
-             data-status-url="{{ route('cliente.recepcion.disponibilidad') }}"
-             class="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-800">
-            <p data-reception-online @if(! $receptionAvailable) hidden @endif>Recepción está disponible. Puedes continuar con tu reserva.</p>
-            <div data-reception-message @if($receptionAvailable) hidden @endif class="text-amber-900">
-                <p class="font-semibold">No podemos confirmar la disponibilidad de recepción en línea en este momento.</p>
-                <p class="mt-1">Para reservar, llama al <a class="font-bold underline" href="tel:{{ preg_replace('/\D+/', '', (string) config('app.support_phone')) }}">{{ config('app.support_phone') }}</a>.</p>
-            </div>
-        </div>
-
         <div class="rounded-2xl border border-black/10 bg-white p-6 shadow-sm">
-            <form method="POST" action="{{ route('cliente.boletos.store') }}" data-reception-protected-form x-data="{
-                receptionAvailable: @js($receptionAvailable),
+            <form method="POST" action="{{ route('cliente.boletos.store') }}" x-data="{
                 viajeId: '{{ old('viaje_id', request('viaje_id', '')) }}',
                 cantidadBoletos: {{ $reserva->cantidad }},
                 asientosSeleccionados: [],
                 tiposPasajero: {},
                 todosAsientos: [],
                 asientosOcupados: [],
+                asientosBloqueados: [],
                 precio: 0,
                 cargando: false,
                 toggleAsiento(asiento) {
@@ -48,10 +37,14 @@
                 estaOcupado(asiento) {
                     return this.asientosOcupados.includes(asiento);
                 },
+                estaBloqueado(asiento) {
+                    return this.asientosBloqueados.includes(asiento);
+                },
                 cargarAsientos() {
                     if (!this.viajeId) {
                         this.todosAsientos = [];
                         this.asientosOcupados = [];
+                        this.asientosBloqueados = [];
                         this.precio = 0;
                         this.asientosSeleccionados = [];
                         return;
@@ -66,12 +59,14 @@
                         .then(data => {
                             this.todosAsientos = data.todos;
                             this.asientosOcupados = data.ocupados;
+                            this.asientosBloqueados = data.bloqueados;
                             this.precio = data.precio;
                             this.cargando = false;
                         })
                         .catch(() => {
                             this.todosAsientos = [];
                             this.asientosOcupados = [];
+                            this.asientosBloqueados = [];
                             this.precio = 0;
                             this.cargando = false;
                             alert('No se pudieron cargar los asientos. Actualiza la página e inténtalo de nuevo.');
@@ -90,7 +85,7 @@
                     filas.push(this.todosAsientos.slice(-5));
                     return filas;
                 }
-            }" x-init="window.addEventListener('reception-availability-change', event => receptionAvailable = event.detail.available)">
+            }">
                 @csrf
                 <input type="hidden" name="reserva_id" value="{{ $reserva->id }}">
 
@@ -124,6 +119,7 @@
                         <div class="flex gap-4 text-xs text-[#12241C]/60">
                             <span class="inline-flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-[#6FCF64]"></span>Disponible</span>
                             <span class="inline-flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-rose-500"></span>Ocupado</span>
+                            <span class="inline-flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-slate-400"></span>Bloqueado</span>
                             <span class="inline-flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-[#D9A441]"></span>Seleccionado</span>
                         </div>
 
@@ -141,8 +137,9 @@
                                             :disabled="estaOcupado(asiento)"
                                             :class="{
                                                 'bg-[#D9A441] border-[#B5842B] text-white': estaSeleccionado(asiento),
-                                                'bg-[#6FCF64] border-[#3FA341] text-[#0B2A1E]': !estaOcupado(asiento) && !estaSeleccionado(asiento),
-                                                'bg-rose-500 border-rose-700 text-white opacity-70 cursor-not-allowed': estaOcupado(asiento)
+                                                'bg-slate-400 border-slate-600 text-white cursor-not-allowed opacity-80': estaBloqueado(asiento),
+                                                'bg-rose-500 border-rose-700 text-white opacity-70 cursor-not-allowed': estaOcupado(asiento) && !estaBloqueado(asiento),
+                                                'bg-[#6FCF64] border-[#3FA341] text-[#0B2A1E]': !estaOcupado(asiento) && !estaBloqueado(asiento) && !estaSeleccionado(asiento)
                                             }"
                                             class="w-12 h-12 rounded-lg border-2 font-semibold transition">
                                             <span x-text="asiento"></span>
@@ -204,9 +201,9 @@
                 </div>
 
                 <div class="mb-4 bg-[#F6F3E9] border border-[#1B6B45]/20 rounded-lg p-4">
-                    <p class="text-sm text-[#12241C]/60">Precio por boleto:</p>
+                    <p class="text-sm text-[#12241C]/60">Tarifa única por boleto (incluye todos los tipos):</p>
                     <p class="text-lg font-semibold text-[#12241C]" x-text="precio ? 'Bs ' + parseFloat(precio).toFixed(2) : '—'"></p>
-                    <p class="text-sm text-[#12241C]/60 mt-1">Total aproximado:</p>
+                    <p class="text-sm text-[#12241C]/60 mt-1">Total:</p>
                     <p class="text-lg font-semibold text-[#12241C]" x-text="precio ? 'Bs ' + (parseFloat(precio) * asientosSeleccionados.length).toFixed(2) : '—'"></p>
                 </div>
 
@@ -222,8 +219,8 @@
                     <a href="{{ route('cliente.reservas.index') }}" class="inline-flex items-center rounded-full border border-black/15 bg-white px-4 py-2 text-sm font-semibold text-[#12241C]/70 hover:bg-[#F6F3E9]">
                         Volver
                     </a>
-                    <button type="submit" data-reception-submit @disabled(! $receptionAvailable)
-                            x-bind:disabled="!receptionAvailable || asientosSeleccionados.length !== cantidadBoletos || cargando"
+                    <button type="submit"
+                            x-bind:disabled="asientosSeleccionados.length !== cantidadBoletos || cargando"
                             class="inline-flex items-center rounded-full bg-[#6FCF64] px-5 py-2.5 text-sm font-bold text-[#0B2A1E] transition hover:bg-[#9BE28C] disabled:cursor-not-allowed disabled:opacity-50">
                         Continuar al pago
                     </button>

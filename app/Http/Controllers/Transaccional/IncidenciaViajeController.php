@@ -10,12 +10,17 @@ use App\Models\Viaje;
 use App\Models\TipoIncidencia;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 
 class IncidenciaViajeController extends Controller
 {
     public function index(Request $request)
     {
         $this->authorize('incidenciaviaje.ver');
+        $request->validate([
+            'search' => 'sometimes|nullable|string|max:255',
+            'page' => 'sometimes|integer|min:1',
+        ]);
 
         $incidencias = IncidenciaViaje::with('viaje.ruta', 'tipoIncidencia')
                                        ->where('estado_base', 1)
@@ -44,18 +49,16 @@ class IncidenciaViajeController extends Controller
     {
         $this->authorize('incidenciaviaje.crear');
 
-        $request->validate([
-            'viaje_id'            => 'required|exists:viajes,id',
-            'tipo_incidencia_id'  => 'required|exists:tipo_incidencias,id',
+        $datos = $request->validate([
+            'viaje_id'            => ['required', 'integer', Rule::exists('viajes', 'id')->where('estado_base', 1)],
+            'tipo_incidencia_id'  => ['required', 'integer', Rule::exists('tipo_incidencias', 'id')->where('estado_base', 1)],
             'fecha_inicio'        => 'required|date',
             'fecha_fin'           => 'nullable|date|after_or_equal:fecha_inicio',
-            'descripcion_detalle' => 'nullable|string',
+            'descripcion_detalle' => 'nullable|string|max:16000',
         ]);
 
-        DB::transaction(function () use ($request) {
-            $incidencia = IncidenciaViaje::create($request->only(
-                'viaje_id', 'tipo_incidencia_id', 'fecha_inicio', 'fecha_fin', 'descripcion_detalle'
-            ));
+        DB::transaction(function () use ($datos) {
+            $incidencia = IncidenciaViaje::create($datos);
 
             $this->actualizarEstadoViajeYNotificar($incidencia);
         });
@@ -78,18 +81,16 @@ class IncidenciaViajeController extends Controller
     {
         $this->authorize('incidenciaviaje.editar');
 
-        $request->validate([
-            'viaje_id'            => 'required|exists:viajes,id',
-            'tipo_incidencia_id'  => 'required|exists:tipo_incidencias,id',
+        $datos = $request->validate([
+            'viaje_id'            => ['required', 'integer', Rule::exists('viajes', 'id')->where('estado_base', 1)],
+            'tipo_incidencia_id'  => ['required', 'integer', Rule::exists('tipo_incidencias', 'id')->where('estado_base', 1)],
             'fecha_inicio'        => 'required|date',
             'fecha_fin'           => 'nullable|date|after_or_equal:fecha_inicio',
-            'descripcion_detalle' => 'nullable|string',
+            'descripcion_detalle' => 'nullable|string|max:16000',
         ]);
 
-        DB::transaction(function () use ($request, $incidenciaviaje) {
-            $incidenciaviaje->update($request->only(
-                'viaje_id', 'tipo_incidencia_id', 'fecha_inicio', 'fecha_fin', 'descripcion_detalle'
-            ));
+        DB::transaction(function () use ($datos, $incidenciaviaje) {
+            $incidenciaviaje->update($datos);
 
             $this->actualizarEstadoViajeYNotificar($incidenciaviaje);
         });

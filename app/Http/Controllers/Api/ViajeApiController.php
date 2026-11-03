@@ -3,13 +3,13 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\Bus;
 use App\Models\Ruta;
 use App\Models\Viaje;
 use App\Services\ViajeAsientosService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 use OpenApi\Attributes as OA;
 
 #[OA\Tag(name: "Viajes", description: "Gestión de viajes")]
@@ -53,6 +53,10 @@ class ViajeApiController extends Controller
     ])]
     public function index(Request $request): JsonResponse
     {
+        $request->validate([
+            'search' => 'sometimes|nullable|string|max:255',
+            'page' => 'sometimes|integer|min:1',
+        ]);
         $viajes = Viaje::query()
             ->with(['ruta', 'bus'])
             ->activos()
@@ -87,16 +91,15 @@ class ViajeApiController extends Controller
     public function store(Request $request): JsonResponse
     {
         $data = $request->validate([
-            'ruta_id' => 'required|exists:rutas,id',
-            'bus_id' => 'required|exists:buses,id',
-            'fecha_viaje' => 'required|date',
-            'hora_salida' => 'required',
-            'estado' => 'nullable|in:programado,en curso,finalizado,cancelado',
+            'ruta_id' => ['required', 'integer', Rule::exists('rutas', 'id')->where('estado_base', 1)],
+            'bus_id' => ['required', 'integer', Rule::exists('buses', 'id')->where('estado_base', 1)],
+            'fecha_viaje' => 'required|date_format:Y-m-d',
+            'hora_salida' => 'required|date_format:H:i,H:i:s',
+            'estado' => 'nullable|in:programado,en curso,retrasado,finalizado,cancelado',
         ]);
 
-        $viaje = DB::transaction(function () use ($data, $request) {
+        $viaje = DB::transaction(function () use ($data) {
             $viaje = Viaje::create($data);
-            $bus = Bus::findOrFail($request->bus_id);
             $this->asientosService->crearParaViaje($viaje);
 
             return $viaje;
@@ -144,11 +147,11 @@ class ViajeApiController extends Controller
     public function update(Request $request, Viaje $viaje): JsonResponse
     {
         $data = $request->validate([
-            'ruta_id' => 'required|exists:rutas,id',
-            'bus_id' => 'required|exists:buses,id',
-            'fecha_viaje' => 'required|date',
-            'hora_salida' => 'required',
-            'estado' => 'required|in:programado,en curso,finalizado,cancelado',
+            'ruta_id' => ['required', 'integer', Rule::exists('rutas', 'id')->where('estado_base', 1)],
+            'bus_id' => ['required', 'integer', Rule::exists('buses', 'id')->where('estado_base', 1)],
+            'fecha_viaje' => 'required|date_format:Y-m-d',
+            'hora_salida' => 'required|date_format:H:i,H:i:s',
+            'estado' => 'required|in:programado,en curso,retrasado,finalizado,cancelado',
         ]);
 
         $viaje->update($data);

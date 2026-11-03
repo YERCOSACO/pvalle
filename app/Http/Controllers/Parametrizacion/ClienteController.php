@@ -12,6 +12,10 @@ class ClienteController extends Controller
     public function index(Request $request)
     {
     $this->authorize('clientes.ver');
+    $request->validate([
+        'search' => 'sometimes|nullable|string|max:255',
+        'page' => 'sometimes|integer|min:1',
+    ]);
 
     $clientes = Cliente::where('estado_base', 1)
                         ->when($request->search, function ($query, $search) {
@@ -39,27 +43,21 @@ class ClienteController extends Controller
     {
         $this->authorize('clientes.crear');
 
-        $request->validate([
+        $datos = $request->validate([
             'nombre'           => 'required|string|max:255',
             'apellido'         => 'required|string|max:255',
-            'cedula'           => 'required|string|unique:clientes,cedula',
-            'email'            => 'required|email|unique:clientes,email',
-            'contrasena'       => 'required|min:12|confirmed',
+            'cedula'           => 'required|string|max:255|unique:clientes,cedula',
+            'email'            => 'required|string|email|max:255|unique:clientes,email',
+            'contrasena'       => 'required|string|min:12|confirmed',
             'telefono'         => 'nullable|string|max:20',
             //6
             'direccion'        => 'nullable|string|max:255',
-            'fecha_nacimiento' => 'nullable|date',
+            'fecha_nacimiento' => 'nullable|date|before_or_equal:today',
         ]);
 
         Cliente::create([
-            'nombre'           => $request->nombre,
-            'apellido'         => $request->apellido,
-            'cedula'           => $request->cedula,
-            'email'            => $request->email,
-            'contrasena'       => Hash::make($request->contrasena),
-            'telefono'         => $request->telefono,
-            'direccion'        => $request->direccion,
-            'fecha_nacimiento' => $request->fecha_nacimiento,
+            ...$datos,
+            'contrasena' => Hash::make($datos['contrasena']),
         ]);
 
         return redirect()->route('parametrizacion.clientes.index')
@@ -77,25 +75,23 @@ class ClienteController extends Controller
     {
         $this->authorize('clientes.editar');
 
-        $request->validate([
+        $datos = $request->validate([
             'nombre'           => 'required|string|max:255',
             'apellido'         => 'required|string|max:255',
-            'cedula'           => 'required|string|unique:clientes,cedula,' . $cliente->id,
-            'email'            => 'required|email|unique:clientes,email,' . $cliente->id,
+            'cedula'           => 'required|string|max:255|unique:clientes,cedula,' . $cliente->id,
+            'email'            => 'required|string|email|max:255|unique:clientes,email,' . $cliente->id,
             'telefono'         => 'nullable|string|max:20',
             'direccion'        => 'nullable|string|max:255',
-            'fecha_nacimiento' => 'nullable|date',
+            'fecha_nacimiento' => 'nullable|date|before_or_equal:today',
+            'contrasena'       => 'sometimes|nullable|string|min:12|confirmed',
         ]);
 
-        $cliente->update($request->only([
-            'nombre', 'apellido', 'cedula', 'email',
-            'telefono', 'direccion', 'fecha_nacimiento',
-        ]));
+        $datosCliente = $datos;
+        unset($datosCliente['contrasena']);
+        $cliente->update($datosCliente);
 
-        if ($request->filled('contrasena')) {
-            $request->validate(['contrasena' => 'min:6|confirmed']);
-            //1///////////////////////////////////////
-            $cliente->update(['contrasena' => Hash::make($request->contrasena)]);
+        if (! empty($datos['contrasena'])) {
+            $cliente->update(['contrasena' => Hash::make($datos['contrasena'])]);
         }
 
         return redirect()->route('parametrizacion.clientes.index')

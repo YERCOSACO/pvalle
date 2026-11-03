@@ -11,6 +11,10 @@ class TipoEncomiendaController extends Controller
     public function index(Request $request)
     {
     $this->authorize('tipoencomiendas.ver');
+    $request->validate([
+        'search' => 'sometimes|nullable|string|max:255',
+        'page' => 'sometimes|integer|min:1',
+    ]);
 
     $tipoEncomiendas = TipoEncomienda::where('estado_base', 1)
                                       ->when($request->search, function ($query, $search) {
@@ -33,13 +37,13 @@ class TipoEncomiendaController extends Controller
     {
         $this->authorize('tipoencomiendas.crear');
 
-        $request->validate([
+        $datos = $request->validate([
             'nombre'      => 'required|string|max:255',
-            'descripcion' => 'nullable|string',
-            'precio'      => 'required|numeric|min:0',
+            'descripcion' => 'nullable|string|max:255',
+            'precio'      => 'required|numeric|between:0,999999.99|decimal:0,2',
         ]);
 
-        TipoEncomienda::create($request->only('nombre', 'descripcion', 'precio'));
+        TipoEncomienda::create($datos);
 
         return redirect()->route('parametrizacion.tipoencomiendas.index')
                          ->with('success', 'Tipo de encomienda creado correctamente.');
@@ -56,13 +60,13 @@ class TipoEncomiendaController extends Controller
     {
         $this->authorize('tipoencomiendas.editar');
 
-        $request->validate([
+        $datos = $request->validate([
             'nombre'      => 'required|string|max:255',
-            'descripcion' => 'nullable|string',
-            'precio'      => 'required|numeric|min:0',
+            'descripcion' => 'nullable|string|max:255',
+            'precio'      => 'required|numeric|between:0,999999.99|decimal:0,2',
         ]);
 
-        $tipoEncomienda->update($request->only('nombre', 'descripcion', 'precio'));
+        $tipoEncomienda->update($datos);
 
         return redirect()->route('parametrizacion.tipoencomiendas.index')
                          ->with('success', 'Tipo de encomienda actualizado correctamente.');

@@ -69,7 +69,7 @@ p {
 
 .resumen {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(5, 1fr);
     gap: 12px;
     margin: 24px 0;
 }
@@ -158,6 +158,10 @@ input[type="checkbox"] {
 
 .ocupado {
     color: #be123c;
+}
+
+.bloqueado {
+    color: #475569;
 }
 
 .pendiente {

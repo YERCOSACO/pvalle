@@ -22,4 +22,9 @@ class Bus extends Model
     {
         return $query->where('estado_base', 1);
     }
+
+    public function viajes()
+    {
+        return $this->hasMany(Viaje::class);
+    }
 }

@@ -5,9 +5,9 @@ namespace App\Http\Controllers\Cliente;
 use App\Http\Controllers\Controller;
 use App\Models\Reserva;
 use App\Models\Viaje;
-use App\Services\ReceptionAvailability;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
+use Illuminate\Validation\Rule;
 
 class ReservaController extends Controller
 {
@@ -29,38 +29,34 @@ class ReservaController extends Controller
         return view('cliente.reservas.index', compact('reservasPorViaje', 'reservasSinViaje'));
     }
 
-    public function create(ReceptionAvailability $availability): View
+    public function create(Request $request): View
     {
+        $data = $request->validate([
+            'viaje_id' => ['sometimes', 'nullable', 'integer', Rule::exists('viajes', 'id')->where('estado_base', 1)],
+            'pasajeros' => 'sometimes|integer|min:1|max:4',
+        ]);
+
         return view('cliente.reservas.create', [
-            'viajeId' => request('viaje_id'),
-            'cantidad' => request('pasajeros', 1),
-            'receptionAvailable' => $availability->isAvailable(),
+            'viajeId' => $data['viaje_id'] ?? null,
+            'cantidad' => $data['pasajeros'] ?? 1,
         ]);
     }
 
-    public function store(Request $request, ReceptionAvailability $availability)
+    public function store(Request $request)
     {
-        // Comprobación del servidor: el bloqueo del botón del navegador no es suficiente.
-        if (! $availability->isAvailable()) {
-            return back()->withInput()->withErrors([
-                'recepcion' => 'En este momento no podemos procesar reservas en línea. Por favor, llame al ' . config('app.support_phone') . ' para reservar por teléfono.',
-            ]);
-        }
-
-        $request->validate([
-            //10//////////////////////////////////////////////////////////////////
+        $datos = $request->validate([
             'cantidad' => 'required|integer|min:1|max:4',
-            'viaje_id' => 'nullable|integer|exists:viajes,id',
+            'viaje_id' => ['nullable', 'integer', Rule::exists('viajes', 'id')->where('estado_base', 1)],
         ]);
 
-        if ($request->filled('viaje_id')) {
+        if (! empty($datos['viaje_id'])) {
             $viaje = Viaje::reservables()->withCount([
                 'asientos as asientos_disponibles' => fn ($query) => $query
                     ->activos()
                     ->where('estado', 'disponible'),
-            ])->findOrFail($request->viaje_id);
+            ])->findOrFail($datos['viaje_id']);
 
-            if ($viaje->asientos_disponibles < $request->cantidad) {
+            if ($viaje->asientos_disponibles < $datos['cantidad']) {
                 return back()->withErrors([
                     'cantidad' => 'Ese viaje solo tiene ' . $viaje->asientos_disponibles . ' asiento(s) disponible(s).',
                 ])->withInput();
@@ -72,14 +68,14 @@ class ReservaController extends Controller
         $reserva = Reserva::create([
             'cliente_id' => $cliente->id,
             'fecha_reserva' => now(),
-            'cantidad' => $request->cantidad,
+            'cantidad' => $datos['cantidad'],
             'estado' => 'pendiente',
             'estado_base' => 1,
         ]);
 
         return redirect()->route('cliente.boletos.create', [
             'reserva' => $reserva,
-            'viaje_id' => $request->viaje_id,
+            'viaje_id' => $datos['viaje_id'] ?? null,
         ])
                          ->with('success', 'Solicitud iniciada. Aún debes elegir los asientos y completar el proceso de pago; esto no confirma tu boleto.');
     }

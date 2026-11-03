@@ -21,7 +21,7 @@
                 ['label' => 'ADMINISTRAR RUTA', 'route' => 'parametrizacion.rutas.index', 'active' => 'parametrizacion.rutas.*', 'permission' => 'rutas.ver'],
                 ['label' => 'ADMINISTRAR TIPO_ENCOMIENDA', 'route' => 'parametrizacion.tipoencomiendas.index', 'active' => 'parametrizacion.tipoencomiendas.*', 'permission' => 'tipoencomiendas.ver'],
                 ['label' => 'ADMINISTRAR TIPOS_INCIDENCIA', 'route' => 'parametrizacion.tipoincidencias.index', 'active' => 'parametrizacion.tipoincidencias.*', 'permission' => 'tipoincidencias.ver'],
-         //       ['label' => 'ADMINISTRAR ASIENTO_VIAJE', 'route' => 'parametrizacion.asientoviaje.index', 'active' => 'parametrizacion.asientoviaje.*', 'permission' => 'asientoviaje.ver'],
+                ['label' => 'ADMINISTRAR ASIENTOS DE VIAJE', 'route' => 'parametrizacion.asientoviaje.gestion', 'active' => 'parametrizacion.asientoviaje.gestion', 'permission' => 'asientoviaje.ver'],
                 ['label' => 'ADMINISTRAR NOTIFICACION', 'route' => 'transaccional.notificaciones.index', 'active' => 'transaccional.notificaciones.*', 'permission' => 'notificaciones.ver'],
 
                 ],
@@ -42,11 +42,23 @@
                 [
             'label' => 'Reporte',
             'short' => '04',
-            'pattern' => 'transaccional.*',
+                    'pattern' => 'reporte.*',
             'items' => [
-                ['label' => 'REPORTE ASIENTO_VIAJE', 'route' => 'parametrizacion.asientoviaje.index', 'active' => 'parametrizacion.asientoviaje.*', 'permission' => 'asientoviaje.ver'],
- ],
-        ],
+                        ['label' => 'REPORTE DE BOLETOS', 'route' => 'reporte.boletos', 'active' => 'reporte.boletos', 'permission' => 'reportes.ver'],
+                        ['label' => 'REPORTE DE VIAJES', 'route' => 'reporte.viajes', 'active' => 'reporte.viajes', 'permission' => 'reportes.ver'],
+                        ['label' => 'REPORTE DE ENCOMIENDAS', 'route' => 'reporte.encomiendas', 'active' => 'reporte.encomiendas', 'permission' => 'reportes.ver'],
+                    ],
+                ],
+                [
+                    'label' => 'Estadística',
+                    'short' => '05',
+                    'pattern' => 'estadisticas.*',
+                    'items' => [
+                    ['label' => 'INGRESOS POR BOLETOS', 'route' => 'estadisticas.ingresos', 'active' => 'estadisticas.ingresos', 'permission' => 'estadisticas.ver'],
+                    ['label' => 'VIAJES POR RUTAS', 'route' => 'estadisticas.viajes-ruta', 'active' => 'estadisticas.viajes-ruta', 'permission' => 'estadisticas.ver'],
+                    ['label' => 'ENCOMIENDAS', 'route' => 'estadisticas.encomiendas', 'active' => 'estadisticas.encomiendas', 'permission' => 'estadisticas.ver'],
+                    ],
+                ],
     ];
 @endphp
 

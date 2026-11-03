@@ -12,6 +12,10 @@ class UsuarioController extends Controller
     public function index(Request $request)
     {
     $this->authorize('usuarios.ver');
+    $request->validate([
+        'search' => 'sometimes|nullable|string|max:255',
+        'page' => 'sometimes|integer|min:1',
+    ]);
 
     $usuarios = User::with('roles')
                      ->where('estado_base', 1)
@@ -40,7 +44,7 @@ class UsuarioController extends Controller
 
         $request->validate([
             'name'     => 'required|string|max:255',
-            'email'    => 'required|email|unique:users',
+            'email'    => 'required|string|email|max:255|unique:users,email',
             //6
             'password' => 'required|min:12|confirmed',
         ]);
@@ -68,7 +72,7 @@ class UsuarioController extends Controller
 
         $request->validate([
             'name'  => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email,' . $usuario->id,
+            'email' => 'required|string|email|max:255|unique:users,email,' . $usuario->id,
         ]);
 
         $usuario->update([

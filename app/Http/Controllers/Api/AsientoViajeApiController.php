@@ -4,8 +4,11 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\AsientoViaje;
+use App\Models\Viaje;
+use App\Services\ViajeAsientosService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 use OpenApi\Attributes as OA;
 
 #[OA\Tag(name: "Asientos de Viaje", description: "Gestión de asientos de viaje")]
@@ -34,6 +37,11 @@ class AsientoViajeApiController extends Controller
     ])]
     public function index(Request $request): JsonResponse
     {
+        $request->validate([
+            'viaje_id' => 'sometimes|nullable|integer|exists:viajes,id',
+            'estado' => 'sometimes|nullable|in:disponible,ocupado,bloqueado',
+            'page' => 'sometimes|integer|min:1',
+        ]);
         $asientos = AsientoViaje::query()
             ->with('viaje')
             ->where('estado_base', 1)
@@ -59,13 +67,24 @@ class AsientoViajeApiController extends Controller
         new OA\Response(response: 401, description: "No autenticado"),
         new OA\Response(response: 422, description: "Error de validación"),
     ])]
-    public function store(Request $request): JsonResponse
+    public function store(Request $request, ViajeAsientosService $asientosService): JsonResponse
     {
+        $request->merge([
+            'numero_asiento' => strtoupper(trim((string) $request->input('numero_asiento'))),
+        ]);
         $data = $request->validate([
             'viaje_id' => 'required|exists:viajes,id',
-            'numero_asiento' => 'required|string',
+            'numero_asiento' => ['required', 'string', 'max:4', 'regex:/^\d{1,3}[A-D]$/'],
             'estado' => 'nullable|in:disponible,ocupado,bloqueado',
         ]);
+
+        $viaje = Viaje::with('bus')->findOrFail($data['viaje_id']);
+        $asientosEsperados = $asientosService->generarNumeros($viaje->bus->capacidad);
+        if (! in_array($data['numero_asiento'], $asientosEsperados, true)) {
+            throw ValidationException::withMessages([
+                'numero_asiento' => 'El número de asiento supera la capacidad del bus asignado al viaje.',
+            ]);
+        }
 
         $data['estado_base'] = 1;
         $data['estado'] = $data['estado'] ?? 'disponible';

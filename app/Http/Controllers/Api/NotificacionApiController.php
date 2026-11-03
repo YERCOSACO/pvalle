@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Notificacion;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use OpenApi\Attributes as OA;
 
 #[OA\Tag(name: "Notificaciones", description: "Gestión de notificaciones")]
@@ -37,6 +38,10 @@ class NotificacionApiController extends Controller
     ])]
     public function index(Request $request): JsonResponse
     {
+        $request->validate([
+            'estado' => 'sometimes|nullable|in:pendiente,enviada,leida',
+            'page' => 'sometimes|integer|min:1',
+        ]);
         $notificaciones = Notificacion::query()
             ->with('cliente')
             ->where('estado_base', 1)
@@ -65,9 +70,9 @@ class NotificacionApiController extends Controller
     public function store(Request $request): JsonResponse
     {
         $data = $request->validate([
-            'cliente_id' => 'required|exists:clientes,id',
+            'cliente_id' => ['required', 'integer', Rule::exists('clientes', 'id')->where('estado_base', 1)],
             'titulo' => 'required|string|max:255',
-            'mensaje' => 'required|string',
+            'mensaje' => 'required|string|max:5000',
             'tipo' => 'nullable|in:info,alerta,urgente',
             'canal' => 'nullable|in:sistema,email,sms',
             'prioridad' => 'nullable|in:baja,normal,alta',
@@ -118,7 +123,7 @@ class NotificacionApiController extends Controller
     {
         $data = $request->validate([
             'titulo' => 'required|string|max:255',
-            'mensaje' => 'required|string',
+            'mensaje' => 'required|string|max:5000',
             'tipo' => 'nullable|in:info,alerta,urgente',
             'canal' => 'nullable|in:sistema,email,sms',
             'prioridad' => 'nullable|in:baja,normal,alta',

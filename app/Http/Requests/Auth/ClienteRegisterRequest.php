@@ -22,7 +22,7 @@ class ClienteRegisterRequest extends FormRequest
             'contrasena' => ['required', 'confirmed', Password::defaults()],
             'telefono' => ['nullable', 'string', 'max:20'],
             'direccion' => ['nullable', 'string', 'max:255'],
-            'fecha_nacimiento' => ['nullable', 'date'],
+            'fecha_nacimiento' => ['nullable', 'date', 'before_or_equal:today'],
         ];
     }
 }

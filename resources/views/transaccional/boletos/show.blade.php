@@ -40,7 +40,7 @@
                 <div class="mb-4 p-4 bg-green-100 text-green-700 rounded-lg text-sm">{{ session('success') }}</div>
             @endif
 
-            <div class="grid grid-cols-4 gap-4 mb-6">
+            <div class="grid grid-cols-2 gap-4 mb-6 sm:grid-cols-3 lg:grid-cols-5">
                 <div class="bg-white rounded-xl shadow p-4 text-center">
                     <p class="text-3xl font-bold text-gray-800">{{ $totalAsientos }}</p>
                     <p class="text-xs text-gray-500 mt-1">Total asientos</p>
@@ -52,6 +52,10 @@
                 <div class="bg-white rounded-xl shadow p-4 text-center">
                     <p class="text-3xl font-bold text-rose-600">{{ $totalOcupados }}</p>
                     <p class="text-xs text-gray-500 mt-1">Ocupados</p>
+                </div>
+                <div class="bg-white rounded-xl shadow p-4 text-center">
+                    <p class="text-3xl font-bold text-slate-600">{{ $totalBloqueados }}</p>
+                    <p class="text-xs text-gray-500 mt-1">Bloqueados</p>
                 </div>
                 <div class="bg-white rounded-xl shadow p-4 text-center">
                     <p class="text-3xl font-bold text-indigo-600">{{ $porcentaje }}%</p>
@@ -67,6 +71,9 @@
                         </span>
                         <span class="flex items-center gap-2">
                             <span class="w-4 h-4 bg-rose-500 rounded"></span> Confirmado
+                        </span>
+                        <span class="flex items-center gap-2">
+                            <span class="w-4 h-4 bg-slate-400 rounded"></span> Bloqueado
                         </span>
                         <span class="flex items-center gap-2">
                             <span class="w-4 h-4 bg-yellow-400 rounded"></span> Pendiente QR
@@ -111,11 +118,13 @@
                                                 $b = $boletos[$claveAsiento] ?? null;
                                                 $estadoAsiento = $estadosAsientos[$claveAsiento] ?? 'disponible';
 
-                                                if ($b?->estado === 'confirmado') {
+                                                if ($estadoAsiento === 'bloqueado') {
+                                                    $color = 'bg-slate-400 border-slate-600';
+                                                } elseif ($b?->estado === 'confirmado') {
                                                     $color = 'bg-rose-500 border-rose-700';
                                                 } elseif ($b?->estado === 'pendiente') {
                                                     $color = 'bg-yellow-400 border-yellow-600';
-                                                } elseif (in_array($estadoAsiento, ['ocupado', 'bloqueado'], true)) {
+                                                } elseif ($estadoAsiento === 'ocupado') {
                                                     $color = 'bg-rose-500 border-rose-700';
                                                 } else {
                                                     $color = 'bg-emerald-500 border-emerald-700';
@@ -134,6 +143,11 @@
                                                        title="{{ $b->nombre_pasajero }}">
                                                         {{ $numero }}
                                                     </a>
+                                                @elseif($estadoAsiento === 'bloqueado')
+                                                    <div class="w-14 h-14 {{ $color }} border-b-4 rounded-xl text-white text-xs font-bold flex items-center justify-center shadow-md"
+                                                         title="Asiento bloqueado">
+                                                        {{ $numero }}
+                                                    </div>
                                                 @else
                                                     <div class="w-14 h-14 {{ $color }} border-b-4 rounded-xl text-white text-xs font-bold flex items-center justify-center shadow-md">
                                                         {{ $numero }}
@@ -174,6 +188,7 @@
                                                 CI: {{ $b->ci_pasajero ?? '—' }}
                                                 @if($b->telefono_pasajero) · 📞 {{ $b->telefono_pasajero }} @endif
                                             </p>
+                                            <x-expiration-countdown :boleto="$b" />
                                             <div class="flex gap-1 mt-1 flex-wrap">
                                                 @if($b->espacio_extra)
                                                     <span class="bg-blue-100 text-blue-700 text-[10px] px-2 py-1 rounded-full font-semibold">ESPACIO EXTRA</span>
